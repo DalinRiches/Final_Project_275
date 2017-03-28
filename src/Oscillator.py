@@ -1,6 +1,6 @@
 class oscillator:
 
-    def __init__(self, wave_table="Triangle", wave_table_pos=0, voices=1, sync_pos=0, level=75):
+    def __init__(self, input_note, wave_table="Triangle", wave_table_pos=0, voices=1, sync_pos=0, level=75):
         self.wave_table = wave_table
         self.wave_table_pos = wave_table_pos
         self.voices = voices

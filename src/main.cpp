@@ -1,62 +1,84 @@
 
 #include <Arduino.h>
 
+
 void setup(){
   //set digital pins 0-7 as outputs
-  for (int i=3;i<10;i++){
+  for (int i=3;i< 11;i++){
     pinMode(i,OUTPUT);
   }
+
+  Serial.begin(115200);
 }
 
-int DAC(int value, int step_time){
+uint8_t DAC(uint8_t input){
 
-  if ((value && 0b00000001)){
+  uint8_t value = input;
+
+  if ((value << 7)>>7 != 0){
     digitalWrite(3,HIGH);
   }
   else {
     digitalWrite(3,LOW);
   }
-  if ((value && 0b00000010)){
+
+  value = input;
+
+  if ((value << 6)>>7 != 0){
     digitalWrite(4, HIGH);
   }
   else {
     digitalWrite(4, LOW);
   }
 
-  if ((value && 0b00000100)){
+  value = input;
+
+  if ((value << 5)>>7 != 0){
     digitalWrite(5, HIGH);
   }
-
   else {
     digitalWrite(5, LOW);
   }
-  if ((value && 0b00001000)){
+
+  value = input;
+
+  if ((value << 4)>>7 != 0){
     digitalWrite(6,HIGH);
   }
   else {
     digitalWrite(6,LOW);
   }
-  if ((value && 0b00010000)){
+
+  value = input;
+
+  if ((value << 3)>>7 != 0){
     digitalWrite(7, HIGH);
   }
   else {
     digitalWrite(7, LOW);
   }
 
-  if ((value && 0b00100000)){
+  value = input;
+
+  if ((value << 2)>>7 != 0){
     digitalWrite(8, HIGH);
   }
-
   else {
     digitalWrite(8, LOW);
   }
-  if ((value && 0b01000000)){
+
+  value = input;
+
+  if ((value << 1)>>7 != 0){
     digitalWrite(9,HIGH);
   }
   else {
     digitalWrite(9,LOW);
   }
-  if ((value && 0b10000000)){
+
+  value = input;
+
+  if ((value)>>7 != 0){
     digitalWrite(10,HIGH);
   }
   else {
@@ -64,19 +86,29 @@ int DAC(int value, int step_time){
   }
 
 
-  delayMicroseconds(step_time);
   return value;
+
 }
 
 int main(){
    setup();
-  int step_time = 1;
-  while (step_time < 1000) {
-    /* code */
-    
 
-    int value = DAC(0, step_time);
-    step_time = step_time + 1;
+   uint8_t bytes[10] = {0};
+   int len_bytes = 0;
 
-  }
+
+
+
+
+   while (true){
+
+     len_bytes = Serial.readBytesUntil('\n', bytes, 10);
+
+     Serial.println(bytes[0]);
+     DAC(bytes[0]);
+
+   }
+
+
+  Serial.end();
 }
