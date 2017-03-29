@@ -1,4 +1,4 @@
-
+#include "serial_handling.h"
 #include <Arduino.h>
 
 
@@ -9,7 +9,13 @@ void setup(){
   }
 
   Serial.begin(115200);
+
+  Serial.println("Connection secured");
+
+
 }
+
+//TODO: Make loop
 
 uint8_t DAC(uint8_t input){
 
@@ -93,22 +99,29 @@ uint8_t DAC(uint8_t input){
 int main(){
    setup();
 
-   uint8_t bytes[10] = {0};
-   int len_bytes = 0;
+   char line[100];
+   uint16_t size;
+   uint16_t max_size = 100;
 
 
+  Serial.println("Connection secured");
 
+   while(true){
 
-
-   while (true){
-
-     len_bytes = Serial.readBytesUntil('\n', bytes, 10);
-
-     Serial.println(bytes[0]);
-     DAC(bytes[0]);
+        // read the incoming byte:
+        size = serial_readline(line, max_size);
+        //Echo
+        Serial.println('Aids');
 
    }
 
 
+
+
+
+
+
+
   Serial.end();
+  return 0;
 }
