@@ -1,18 +1,17 @@
-#include "serial_handling.h"
 #include <Arduino.h>
 
 
 void setup(){
-  //set digital pins 0-7 as outputs
-  for (int i=3;i< 11;i++){
-    pinMode(i,OUTPUT);
-  }
-
-  Serial.begin(115200);
-
-  Serial.println("Connection secured");
-
-
+    // Arduino setup
+    init();
+    Serial.begin(115200);
+    
+    // set digital pins 3-11 as outputs
+    for (int i=3;i< 11;i++){
+        pinMode(i,OUTPUT);
+    }
+    
+    Serial.println("Connection secured");
 }
 
 //TODO: Make loop
@@ -97,31 +96,23 @@ uint8_t DAC(uint8_t input){
 }
 
 int main(){
-   setup();
-
-   char line[100];
-   uint16_t size;
-   uint16_t max_size = 100;
-
-
-  Serial.println("Connection secured");
-
-   while(true){
-
-        // read the incoming byte:
-        size = serial_readline(line, max_size);
-        //Echo
-        Serial.println('Aids');
-
-   }
-
-
-
-
-
-
-
-
-  Serial.end();
-  return 0;
+    setup();
+    
+    
+    // holds the current byte
+    char byte;
+    Serial.println("Connection secured");
+    
+    while(true){
+        
+        if (Serial.available()) {
+            // read the incoming byte
+            byte = Serial.read();
+            //Echo
+            Serial.print(byte);
+        }
+    }
+    
+    Serial.end();
+    return 0;
 }
