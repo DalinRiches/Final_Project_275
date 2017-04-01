@@ -1,13 +1,10 @@
 # Using the pyserial library for serial communications
-import sys
-sys.path.insert(
-    0, r'C:\Users\Dalin Riches\Desktop\School Files\Second Year\Sem 2\CMPUT275\Final Project\lib\textserial')
+
 
 import serial
 import datetime
 import time
-import cs_message
-import textserial
+
 
 
 def delayMicroseconds(time):
@@ -18,6 +15,12 @@ def delayMicroseconds(time):
         now = datetime.datetime.now()
         if (now - start) >= time_delta:
             break
+def sendbyte(serial, byte):
+    serial.write(byte)
+
+def logbyte(serial):
+    value = serial.read()
+    print(value)
 
 
 if __name__ == "__main__":
@@ -38,25 +41,23 @@ if __name__ == "__main__":
                         nargs="?",
                         type=str,
                         dest="serial_port_name",
-                        default="COM5")
+                        default="/dev/ttyACM0")
 
     args = parser.parse_args()
 
-    debug = args.debug
+    with serial.Serial() as ser:
+        ser.baudrate = 115200;
+        ser.port = "/dev/ttyACM0"
 
-    set_logging(debug)
+        ser.open()
+        print("Trying to open: " + ser.port)
 
-    import textserial
-    serial_port_name = args.serial_port_name
-    log_msg("Opening serial port: {}".format(serial_port_name))
 
-    # Open up the connection
-    baudrate = 115200  # [bit/seconds] 115200 also works
-
-    with textserial.TextSerial(
-            serial_port_name, baudrate, errors='ignore', timeout=None, newline=None) as ser:
-        # Lines for test center or command line
         while True:
-            for i in range(0, 255):
-                line = receive_msg_from_client(ser)
-                send_msg_to_client(ser, i)
+
+            sendbyte(ser, 6)
+            #Out of date pyserial we will need to update this
+            if (ser.in_waiting > 0):
+                logbyte(ser)
+
+        ser.close()
