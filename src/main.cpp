@@ -1,115 +1,50 @@
 #include <Arduino.h>
 
 
-void setup(){
+void setup() {
     // Arduino setup
     init();
     Serial.begin(115200);
 
-    // set digital pins 3-11 as outputs
-    for (int i=3;i< 11;i++){
-        pinMode(i,OUTPUT);
+    // set digital pins 3-10 as outputs
+    for (int i = 3; i < 11; ++i) {
+        pinMode(i, OUTPUT);
     }
 
     Serial.println("Connection secured");
 }
 
-//TODO: Make loop
-
-uint8_t DAC(uint8_t input){
-
-  uint8_t value = input;
-
-  if ((value << 7)>>7 != 0){
-    digitalWrite(3,HIGH);
-  }
-  else {
-    digitalWrite(3,LOW);
-  }
-
-  value = input;
-
-  if ((value << 6)>>7 != 0){
-    digitalWrite(4, HIGH);
-  }
-  else {
-    digitalWrite(4, LOW);
-  }
-
-  value = input;
-
-  if ((value << 5)>>7 != 0){
-    digitalWrite(5, HIGH);
-  }
-  else {
-    digitalWrite(5, LOW);
-  }
-
-  value = input;
-
-  if ((value << 4)>>7 != 0){
-    digitalWrite(6,HIGH);
-  }
-  else {
-    digitalWrite(6,LOW);
-  }
-
-  value = input;
-
-  if ((value << 3)>>7 != 0){
-    digitalWrite(7, HIGH);
-  }
-  else {
-    digitalWrite(7, LOW);
-  }
-
-  value = input;
-
-  if ((value << 2)>>7 != 0){
-    digitalWrite(8, HIGH);
-  }
-  else {
-    digitalWrite(8, LOW);
-  }
-
-  value = input;
-
-  if ((value << 1)>>7 != 0){
-    digitalWrite(9,HIGH);
-  }
-  else {
-    digitalWrite(9,LOW);
-  }
-
-  value = input;
-
-  if ((value)>>7 != 0){
-    digitalWrite(10,HIGH);
-  }
-  else {
-    digitalWrite(10,LOW);
-  }
-
-
-  return value;
-
+uint8_t DAC(uint8_t input) {
+    // Loop through the bits
+    for (int i = 0; i < 8; ++i) {
+        if ((1 << i) & input) {
+            digitalWrite(10 - i, HIGH);
+        }
+        else {
+            digitalWrite(10 - i, LOW);
+        }
+    }
 }
 
-int main(){
+int main() {
     setup();
 
 
     // holds the current byte
     char byte;
     Serial.println("Connection secured");
+    DAC(6);
 
     while(true){
 
-        if (Serial.available()) {
+        if (Serial.available() > 0) {
             // read the incoming byte
             byte = Serial.read();
-            //Echo
+            // Echo
             Serial.print(byte);
+
+            // testing DAC
+            DAC((uint8_t)byte);
 
         }
     }
