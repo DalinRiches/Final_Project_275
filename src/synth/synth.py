@@ -1,5 +1,3 @@
-# Using the pyserial library for serial communications
-
 
 import serial
 import datetime
@@ -7,7 +5,8 @@ import time
 import osc
 import wavetables
 
-
+#TODO: Clean this up into a class, this is a placeholder for testing
+#      Make a communications class for serial, for the life of me i can't get pyserial to love me
 
 def delayMicroseconds(time):
     start = datetime.datetime.now()
@@ -32,6 +31,7 @@ if __name__ == "__main__":
     oscil = osc.wtOsc(wave_tables=wave_tables.square())
 
     while (True):
-        output = oscil.genOutput(1000)
+        output = oscil.genOutput(["B", 4])
         print(output)
-        time.sleep(1)
+        time.sleep(0.000045351)
+        #time.sleep(0.1)
