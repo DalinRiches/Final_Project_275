@@ -1,11 +1,7 @@
-# Note: This is the provided Makefile
-# (with modified ARDUINO_LIBS)
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-TARGET = main
+TARGET =
 
-hex: $(TARGET).hex
 # Place your Arduino libs here! It's okay to not define this.
-ARDUINO_LIBS =
+ARDUINO_LIBS = 
 
 # Either set this here or type `make upload BOARD_TAG=uno`
 BOARD_TAG = mega2560

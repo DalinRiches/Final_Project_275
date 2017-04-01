@@ -41,7 +41,7 @@ int main() {
             // read the incoming byte
             byte = Serial.read();
             // Echo
-            Serial.print(byte);
+            //Serial.print(byte);
 
             // testing DAC
             DAC((uint8_t)byte);

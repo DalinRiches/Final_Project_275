@@ -30,8 +30,10 @@ if __name__ == "__main__":
     wave_tables = wavetables.wavetable()
     oscil = osc.wtOsc(wave_tables=wave_tables.square())
 
+    ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200)
     while (True):
         output = oscil.genOutput(["B", 4])
-        print(output)
+        # print(output)
+        ser.write(bytes([output]))
         time.sleep(0.000045351)
         #time.sleep(0.1)
