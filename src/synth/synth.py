@@ -25,13 +25,23 @@ def logbyte(serial):
 
 
 if __name__ == "__main__":
-    # Code for processing route finding requests here
+
+    # 45 microsecond is ~22050 Hz
+    dtime = 45;
 
     wave_tables = wavetables.wavetable()
     oscil = osc.wtOsc(wave_tables=wave_tables.square())
+    time_delta = datetime.timedelta(microseconds=dtime)
 
     while (True):
-        output = oscil.genOutput(["B", 4])
+        #reads intial time
+        start = datetime.datetime.now()
+
+
+        output = oscil.genOutput(["A", 7])
         print(output)
-        time.sleep(0.000045351)
-        #time.sleep(0.1)
+
+        #waits until 45 microseconds have passed,
+        now = datetime.datetime.now()
+        while (now -start) < time_delta:
+            now = datetime.datetime.now()

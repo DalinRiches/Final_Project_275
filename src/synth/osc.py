@@ -3,8 +3,8 @@ import math
 class wtOsc:
     # I recommend not changing these values
     tunefreq = 440
-    a = 1.059463094359
-    notes = {"C":-9,"B":2,"D":-7,"E":-5,"F":-4,"G":-2,"A":0,"CS":-8,"DS":-6,"FS":-3,"GS":-1,"AS":1}
+    a = 1.059463094359 # 2^(1/12)
+    notes = {"C":-9,"B":2,"D":-7,"E":-5,"F":-4,"G":-2,"A":0,"CS":-8,"DS":-6,"FS":-3,"GS":-1,"AS":1}                    # Semi tone displacement from A
 
     #TODO: Write documentaion this is basically done
 
@@ -45,9 +45,28 @@ class wtOsc:
 
         return output
 
-        #not implemented yet
+        #no offset
     def genOutput_no(self, freq):
-        pass
+
+        if not freq:
+            if not note:
+                return 0
+
+            semitonediff = self._getsemitonediff_f0_(note[0], note[1]) + self.detune
+            freq = self._getfreq_(semitonediff)
+
+        self.pInc = len(self.wave_tables) * freq / self.samplerate
+
+        self.phasor = self.phasor + self.pInc
+
+        # Checks that adding the offset does not place the phase out of the window
+        if self.phasor + self.pOffset > len(self.wave_tables) - 1:
+            self.phasor = self.phasor + self.pInc - len(self.wave_tables) + 1 + self.pOffset
+
+        output = self.wave_tables[math.floor(self.phasor)]
+
+        return output
+
 
     def _getfreq_(self, semitonediff):
         freq = self.tunefreq * pow(self.a, semitonediff)
