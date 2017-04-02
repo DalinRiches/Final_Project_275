@@ -1,4 +1,5 @@
 
+import threading
 import serial
 import datetime
 import time
@@ -17,23 +18,43 @@ def delayMicroseconds(time):
         if (now - start) >= time_delta:
             break
 def sendbyte(serial, byte):
-    serial.write(6)
+    ser.write(bytes([byte]))
 
 def logbyte(serial):
     value = serial.read()
     print(value)
 
-
 if __name__ == "__main__":
-    # Code for processing route finding requests here
+
+    # 45 microsecond is ~22050 Hz
+    dtime = 45;
 
     wave_tables = wavetables.wavetable()
     oscil = osc.wtOsc(wave_tables=wave_tables.square())
+    time_delta = datetime.timedelta(microseconds=dtime)
 
-    ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200)
+    ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
+    start = datetime.datetime.now()
+
+    sT = threading.Thread(target = oscil.genOutput, args=(["A", 4]))
+    oT = threading.Thread(target = sendbyte, args=(ser, output))
+    oT =
+    sT =
+
     while (True):
-        output = oscil.genOutput(["B", 4])
-        # print(output)
+
+        #reads intial time
+
+
+        output = oscil.genOutput(["A", 4])
+
+        #waits until 45 microseconds have passed,
+        now = datetime.datetime.now()
+        while (now - start) < time_delta:
+            now = datetime.datetime.now()
+        print(now)
         ser.write(bytes([output]))
-        time.sleep(0.000045351)
-        #time.sleep(0.1)
+
+        start = datetime.datetime.now()
+
+    ser.close()
