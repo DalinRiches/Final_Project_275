@@ -1,4 +1,5 @@
 
+import threading
 import serial
 import datetime
 import time
@@ -17,12 +18,11 @@ def delayMicroseconds(time):
         if (now - start) >= time_delta:
             break
 def sendbyte(serial, byte):
-    serial.write(6)
+    ser.write(bytes([byte]))
 
 def logbyte(serial):
     value = serial.read()
     print(value)
-
 
 if __name__ == "__main__":
 
@@ -33,15 +33,28 @@ if __name__ == "__main__":
     oscil = osc.wtOsc(wave_tables=wave_tables.square())
     time_delta = datetime.timedelta(microseconds=dtime)
 
+    ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
+    start = datetime.datetime.now()
+
+    sT = threading.Thread(target = oscil.genOutput, args=(["A", 4]))
+    oT = threading.Thread(target = sendbyte, args=(ser, output))
+    oT =
+    sT =
+
     while (True):
+
         #reads intial time
-        start = datetime.datetime.now()
 
 
-        output = oscil.genOutput(["A", 7])
-        print(output)
+        output = oscil.genOutput(["A", 4])
 
         #waits until 45 microseconds have passed,
         now = datetime.datetime.now()
-        while (now -start) < time_delta:
+        while (now - start) < time_delta:
             now = datetime.datetime.now()
+        print(now)
+        ser.write(bytes([output]))
+
+        start = datetime.datetime.now()
+
+    ser.close()

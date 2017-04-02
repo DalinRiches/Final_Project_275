@@ -14,13 +14,14 @@ class wtOsc:
         self.pInc = pInc
         self.pOffset = pOffset
         self.wave_tables = wave_tables
+        self.wavetsize = 240
         self.samplerate = samplerate
         self.detune = detune
 
 
     def genOutput(self, note=None, freq=None):
         # calculates the phase increment based on the formula:
-        # pinc = N * f * fs
+        # pinc = N * f / fs
         # where N is the number of steps in the wave table
         #       f is the frequency we want to generate
         #       fs is the sample frequency or sample rate
@@ -33,15 +34,14 @@ class wtOsc:
             semitonediff = self._getsemitonediff_f0_(note[0], note[1]) + self.detune
             freq = self._getfreq_(semitonediff)
 
-        self.pInc = len(self.wave_tables) * freq / self.samplerate
-
+        self.pInc = self.wavetsize * (freq / self.samplerate)
         self.phasor = self.phasor + self.pInc
 
         # Checks that adding the offset does not place the phase out of the window
-        if self.phasor + self.pOffset > len(self.wave_tables) - 1:
-            self.phasor = self.phasor + self.pInc - len(self.wave_tables) + 1 + self.pOffset
+        if self.phasor >= self.wavetsize:
+            self.phasor = self.phasor - len(self.wave_tables) + 1
 
-        output = self.wave_tables[math.floor(self.phasor + self.pOffset)]
+        output = self.wave_tables[math.floor(self.phasor)]
 
         return output
 
@@ -69,7 +69,7 @@ class wtOsc:
 
 
     def _getfreq_(self, semitonediff):
-        freq = self.tunefreq * pow(self.a, semitonediff)
+        freq = self.tunefreq * (self.a ** semitonediff)
         return freq
 
     def _getsemitonediff_f0_(self, note, octave):
