@@ -40,8 +40,8 @@ class synth:
         self.time_delta2 = datetime.timedelta(seconds=time)
         starttime = datetime.datetime.now()
         now = datetime.datetime.now()
-        if not freq:
-            if not note:
+        if freq == None:
+            if note == None:
                 return
             while now - starttime < self.time_delta2:
                 start = datetime.datetime.now()
@@ -55,15 +55,16 @@ class synth:
                         break
 
         else:
-            start = datetime.datetime.now()
-            output = oscil.genOutput(freq=freq)
+            while now - starttime < self.time_delta2:
+                start = datetime.datetime.now()
+                output = oscil.genOutput(freq=freq)
 
-            self.aud.write(np.uint16(output))
+                self.aud.write(np.uint16(output))
 
-            while(True):
-                now = datetime.datetime.now()
-                if (now - start) > self.time_delta:
-                    break
+                while(True):
+                    now = datetime.datetime.now()
+                    if (now - start) > self.time_delta:
+                        break
 
 
 
@@ -106,8 +107,9 @@ if __name__ == "__main__":
     syn.play(note=['G',4],time=0.5)
     syn.play(note=['E',4],time=1)
     syn.play(note=['DS',4],time=0.5)
-    syn.play(note=['B',4],time=0.5)
+    syn.play(note=['B',5],time=0.5)
     syn.play(note=['FS',4],time=1)
+    syn.play(freq=2000,time=3)
 
     '''
     while (True):
