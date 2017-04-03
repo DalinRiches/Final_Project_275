@@ -1,4 +1,5 @@
 import math
+import datetime
 
 class wtOsc:
     # I recommend not changing these values
@@ -9,13 +10,14 @@ class wtOsc:
     #TODO: Write documentaion this is basically done
 
 
-    def __init__(self, phasor=0, pInc=0, pOffset=0.5, wave_tables=None, samplerate=22050, detune=0):
+    def __init__(self, phasor=0, pInc=0, pOffset=0.5, wave_tables=None, samplerate=16000, detune=0):
         self.phasor = phasor
         self.pInc = pInc
         self.pOffset = pOffset
         self.wave_tables = wave_tables
         self.samplerate = samplerate
         self.detune = detune
+        self.wavetablelen = len(wave_tables)
 
 
     def genOutput(self, note=None, freq=None):
@@ -29,19 +31,19 @@ class wtOsc:
         if not freq:
             if not note:
                 return 0
-
             semitonediff = self._getsemitonediff_f0_(note[0], note[1]) + self.detune
+
             freq = self._getfreq_(semitonediff)
 
-        self.pInc = len(self.wave_tables) * freq / self.samplerate
+        self.pInc = self.wavetablelen * freq / self.samplerate
 
         self.phasor = self.phasor + self.pInc
 
         # Checks that adding the offset does not place the phase out of the window
-        if self.phasor + self.pOffset > len(self.wave_tables) - 1:
-            self.phasor = self.phasor + self.pInc - len(self.wave_tables) + 1 + self.pOffset
+        if self.phasor > self.wavetablelen - 1:
+            self.phasor = self.phasor - self.wavetablelen + 1
 
-        output = self.wave_tables[math.floor(self.phasor + self.pOffset)]
+        output = self.wave_tables[math.floor(self.phasor)]
 
         return output
 
@@ -54,6 +56,6 @@ class wtOsc:
         return freq
 
     def _getsemitonediff_f0_(self, note, octave):
-        semitonediff = (octave-4)*12
+        semitonediff = (octave-3)*12
         semitonediff = semitonediff + self.notes[note]
         return semitonediff
