@@ -109,6 +109,7 @@ if __name__ == "__main__":
     syn.play(note=['DS',4],time=0.5)
     syn.play(note=['B',5],time=0.5)
     syn.play(note=['FS',4],time=1)
+    # You will get bad aliasing on this one as there isn't a wave table with a high enough resolution to handle this frequency yet
     syn.play(freq=2000,time=3)
 
     '''
