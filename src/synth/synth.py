@@ -42,9 +42,8 @@ if __name__ == "__main__":
 
     wave_tables = wavetables.wavetable()
     oscil = osc.wtOsc(wave_tables=wave_tables.square())
-    time_delta = datetime.timedelta(microseconds=dtime)
 
-    ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
+    #ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
 
     aud = alsaaudio.PCM()
 

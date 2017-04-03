@@ -1,7 +1,7 @@
-TARGET =
+TARGET = main
 
 # Place your Arduino libs here! It's okay to not define this.
-ARDUINO_LIBS = 
+ARDUINO_LIBS =
 
 # Either set this here or type `make upload BOARD_TAG=uno`
 BOARD_TAG = mega2560

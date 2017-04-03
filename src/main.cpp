@@ -4,7 +4,7 @@
 void setup() {
     // Arduino setup
     init();
-    Serial.begin(115200);
+    Serial.begin(2000000);
 
     // set digital pins 3-10 as outputs
     for (int i = 3; i < 11; ++i) {
@@ -32,7 +32,7 @@ int main() {
 
     // holds the current byte
     char byte;
-    Serial.println("Connection secured");
+
     DAC(6);
 
     while(true){
@@ -41,9 +41,6 @@ int main() {
             // read the incoming byte
             byte = Serial.read();
             // Echo
-            //Serial.print(byte);
-
-            // testing DAC
             DAC((uint8_t)byte);
 
         }
