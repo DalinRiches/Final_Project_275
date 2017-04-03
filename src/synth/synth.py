@@ -10,6 +10,72 @@ import threading
 #TODO: Clean this up into a class, this is a placeholder for testing
 #      Make a communications class for serial, for the life of me i can't get pyserial to love me
 
+class synth:
+
+    def __init__(self):
+        self.time_delta = datetime.timedelta(microseconds=1)
+        self.wave_tables = wavetables.wavetable()
+        self.aud = alsaaudio.PCM()
+
+        self.aud.setchannels(1)
+        self.aud.setrate(16000) # 16000 Hz sample rate
+        self.aud.setformat(alsaaudio.PCM_FORMAT_U8)
+        self.audio_preload(self.aud)
+
+
+
+        #ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
+
+
+
+        # The period size controls the internal number of frames per period.
+        # The significance of this parameter is documented in the ALSA api.
+        self.aud.setperiodsize(255)
+
+    def play(self, note=None, freq=None, time=0):
+        oscil = osc.wtOsc(wave_tables=self.wave_tables.square())
+
+        if not time:
+            return
+        self.time_delta2 = datetime.timedelta(seconds=time)
+        starttime = datetime.datetime.now()
+        now = datetime.datetime.now()
+        if not freq:
+            if not note:
+                return
+            while now - starttime < self.time_delta2:
+                start = datetime.datetime.now()
+                output = oscil.genOutput(note=note)
+
+                self.aud.write(np.uint16(output))
+
+                while(True):
+                    now = datetime.datetime.now()
+                    if (now - start) > self.time_delta:
+                        break
+
+        else:
+            start = datetime.datetime.now()
+            output = oscil.genOutput(freq=freq)
+
+            self.aud.write(np.uint16(output))
+
+            while(True):
+                now = datetime.datetime.now()
+                if (now - start) > self.time_delta:
+                    break
+
+
+
+    def audio_preload(self, aud):
+
+        for i in range(0,15000):
+            aud.write(np.uint16(1))
+
+
+
+
+'''
 def delayMicroseconds(time):
     start = datetime.datetime.now()
     time_delta = datetime.timedelta(microseconds=time)
@@ -25,55 +91,24 @@ def sendbyte(serial, byte):
 def logbyte(serial):
     value = serial.read()
     print(value)
+'''
 
 
-def audio_preload(aud):
-
-    for i in range(0,3600):
-        aud.write(np.uint16(1))
 
 
 
 
 if __name__ == "__main__":
-    # Code for processing route finding requests here
-    time_delta = datetime.timedelta(microseconds=30)
-    time_delta2 = datetime.timedelta(seconds=1)
 
-    wave_tables = wavetables.wavetable()
-    oscil = osc.wtOsc(wave_tables=wave_tables.square())
+    syn = synth();
 
-    #ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
+    syn.play(note=['A',4],time=0.5)
+    syn.play(note=['G',4],time=0.5)
+    syn.play(note=['E',4],time=1)
+    syn.play(note=['DS',4],time=0.5)
+    syn.play(note=['B',4],time=0.5)
+    syn.play(note=['FS',4],time=1)
 
-    aud = alsaaudio.PCM()
-
-    aud.setchannels(1)
-    aud.setrate(16000) # 16000 Hz sample rate
-    aud.setformat(alsaaudio.PCM_FORMAT_U8)
-
-    # The period size controls the internal number of frames per period.
-    # The significance of this parameter is documented in the ALSA api.
-    aud.setperiodsize(260)
-
-    audio_preload(aud)
-    while True:
-        for i in [['A',5],['B',5],['C',5]]:
-            actualstart=datetime.datetime.now()
-            while (True):
-                start = datetime.datetime.now()
-                output = oscil.genOutput(i)
-                aud.write(np.uint16(output))
-
-
-
-
-                while(True):
-                    now = datetime.datetime.now()
-                    if (now - start) > time_delta:
-                        break
-
-                if (now - actualstart) > time_delta2:
-                    break
     '''
     while (True):
 
