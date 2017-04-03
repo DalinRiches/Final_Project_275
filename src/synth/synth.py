@@ -18,13 +18,14 @@ def delayMicroseconds(time):
         now = datetime.datetime.now()
         if (now - start) >= time_delta:
             break
+
 def sendbyte(serial, byte):
     ser.write(bytes([byte]))
-
 
 def logbyte(serial):
     value = serial.read()
     print(value)
+
 
 def audio_preload(aud):
 
@@ -38,8 +39,12 @@ if __name__ == "__main__":
     # Code for processing route finding requests here
     time_delta = datetime.timedelta(microseconds=30)
     time_delta2 = datetime.timedelta(seconds=1)
+
     wave_tables = wavetables.wavetable()
     oscil = osc.wtOsc(wave_tables=wave_tables.square())
+    time_delta = datetime.timedelta(microseconds=dtime)
+
+    ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
 
     aud = alsaaudio.PCM()
 
@@ -70,3 +75,22 @@ if __name__ == "__main__":
 
                 if (now - actualstart) > time_delta2:
                     break
+    '''
+    while (True):
+
+        #reads intial time
+
+
+        output = oscil.genOutput(["A", 4])
+
+        #waits until 45 microseconds have passed,
+        now = datetime.datetime.now()
+        while (now - start) < time_delta:
+            now = datetime.datetime.now()
+        print(now)
+        ser.write(bytes([output]))
+
+        start = datetime.datetime.now()
+
+    ser.close()
+    '''

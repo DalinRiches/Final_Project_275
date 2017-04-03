@@ -4,8 +4,8 @@ import datetime
 class wtOsc:
     # I recommend not changing these values
     tunefreq = 440
-    a = 1.059463094359
-    notes = {"C":-9,"B":2,"D":-7,"E":-5,"F":-4,"G":-2,"A":0,"CS":-8,"DS":-6,"FS":-3,"GS":-1,"AS":1}
+    a = 1.059463094359 # 2^(1/12)
+    notes = {"C":-9,"B":2,"D":-7,"E":-5,"F":-4,"G":-2,"A":0,"CS":-8,"DS":-6,"FS":-3,"GS":-1,"AS":1}                    # Semi tone displacement from A
 
     #TODO: Write documentaion this is basically done
 
@@ -15,6 +15,7 @@ class wtOsc:
         self.pInc = pInc
         self.pOffset = pOffset
         self.wave_tables = wave_tables
+        self.wavetsize = 240
         self.samplerate = samplerate
         self.detune = detune
         self.wavetablelen = len(wave_tables)
@@ -22,7 +23,7 @@ class wtOsc:
 
     def genOutput(self, note=None, freq=None):
         # calculates the phase increment based on the formula:
-        # pinc = N * f * fs
+        # pinc = N * f / fs
         # where N is the number of steps in the wave table
         #       f is the frequency we want to generate
         #       fs is the sample frequency or sample rate
@@ -35,7 +36,9 @@ class wtOsc:
 
             freq = self._getfreq_(semitonediff)
 
+
         self.pInc = self.wavetablelen * freq / self.samplerate
+
 
         self.phasor = self.phasor + self.pInc
 
@@ -47,12 +50,9 @@ class wtOsc:
 
         return output
 
-        #not implemented yet
-    def genOutput_no(self, freq):
-        pass
 
     def _getfreq_(self, semitonediff):
-        freq = self.tunefreq * pow(self.a, semitonediff)
+        freq = self.tunefreq * (self.a ** semitonediff)
         return freq
 
     def _getsemitonediff_f0_(self, note, octave):
