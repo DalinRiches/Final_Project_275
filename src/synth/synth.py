@@ -13,13 +13,14 @@ import threading
 class synth:
 
     def __init__(self):
-        self.time_delta = datetime.timedelta(microseconds=1)
-        self.wave_tables = wavetables.wavetable()
+        self.time_delta = datetime.timedelta(microseconds=46)
+        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav')
         self.aud = alsaaudio.PCM()
+        self.oscil = osc.wtOsc(wave_tables=self.wave_tables.table)
 
         self.aud.setchannels(1)
-        self.aud.setrate(16000) # 16000 Hz sample rate
-        self.aud.setformat(alsaaudio.PCM_FORMAT_U8)
+        self.aud.setrate(22050) # 16000 Hz sample rate
+        self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)
         self.audio_preload(self.aud)
 
 
@@ -30,10 +31,12 @@ class synth:
 
         # The period size controls the internal number of frames per period.
         # The significance of this parameter is documented in the ALSA api.
-        self.aud.setperiodsize(255)
+        self.aud.setperiodsize(1)
 
-    def play(self, note=None, freq=None, time=0):
-        oscil = osc.wtOsc(wave_tables=self.wave_tables.square())
+    def play(self, note=None, freq=None, time=0, slide=False):
+
+        if not slide:
+            self.oscil.phasor = 0
 
         if not time:
             return
@@ -45,9 +48,10 @@ class synth:
                 return
             while now - starttime < self.time_delta2:
                 start = datetime.datetime.now()
-                output = oscil.genOutput(note=note)
 
-                self.aud.write(np.uint16(output))
+                output = self.oscil.genOutput(note=note)
+
+                self.aud.write(np.int16(output))
 
                 while(True):
                     now = datetime.datetime.now()
@@ -57,9 +61,10 @@ class synth:
         else:
             while now - starttime < self.time_delta2:
                 start = datetime.datetime.now()
-                output = oscil.genOutput(freq=freq)
 
-                self.aud.write(np.uint16(output))
+                output = self.oscil.genOutput(freq=freq)
+                self.aud.write(np.int16(output))
+
 
                 while(True):
                     now = datetime.datetime.now()
@@ -110,7 +115,7 @@ if __name__ == "__main__":
     syn.play(note=['B',5],time=0.5)
     syn.play(note=['FS',4],time=1)
     # You will get bad aliasing on this one as there isn't a wave table with a high enough resolution to handle this frequency yet
-    syn.play(freq=2000,time=3)
+    syn.play(freq=1000,time=3)
 
     '''
     while (True):
