@@ -6,6 +6,7 @@ import alsaaudio
 import math
 import threading
 import queue
+import envolope
 
 
 #TODO: Clean this up into a class, this is a placeholder for testing
@@ -18,12 +19,14 @@ class synth:
         self.samplerate = 44100
         self.ard_ex = False
 
-        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav', wtpos=2)
-        self.wave_tables2 = wavetables.wavetable(wav='Basic Shapes.wav', wtpos=2)
+        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav', wtpos=1)
+        self.wave_tables2 = wavetables.wavetable(wav='Basic Shapes.wav', wtpos=0)
         self.aud = alsaaudio.PCM(mode=alsaaudio.PCM_NONBLOCK)
         # Use these class objects to change the Oscillator setting's
         self.oscil = osc.wtOsc(self.freqDict,wave_tables=self.wave_tables.table, volume=0.3, detune=0,samplerate=self.samplerate)
-        self.oscil2 = osc.wtOsc(self.freqDict,wave_tables=self.wave_tables.table, volume=0.75, detune=-12, wavetablepos=0,samplerate=self.samplerate)
+        self.oscil2 = osc.wtOsc(self.freqDict,wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0,samplerate=self.samplerate)
+        self.env1 = envolope.envolope(self.samplerate,0.005,0,2)
+        self.env2 = envolope.envolope(self.samplerate,0.005,0,2)
         self.volume = volume
 
 
@@ -92,13 +95,18 @@ class synth:
                 # Run oscs
                 sig1 = self.oscil.genOutput(freq)
                 sig2 = self.oscil2.genOutput(freq)
-                # Feed into
 
+                if sig1 > 32768:
+                    sig1 = 32768 - sig1
+                if sig1 > 32768:
+                    sig1 = 32768 - sig1
 
-
-
+                # Feed into envolope
+                sig1 = sig1*self.env1.gen_env(count)
+                sig2 = sig2*self.env2.gen_env(count)
 
                 #mixes the two
+
 
                 output = ((sig1 + sig2)//2)*self.volume
                 notesamp.append(output)
@@ -151,7 +159,7 @@ def logbyte(serial):
 if __name__ == "__main__":
 
     syn = synth();
-    sequence = [['A 3',4],['G 3',4],['F 3',4],['D 4',4],['C 4',4]]
+    sequence = [['A 3',2],['G 3',2],['F 3',2],['D 4',2],['C 4',2]]
 
     syn.play(sequence)
 

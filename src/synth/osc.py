@@ -39,7 +39,12 @@ class wtOsc:
         if self.phasor >= self.wavetsize:
             self.phasor = self.phasor - self.wavetsize + 1
 
-        output = (self.wave_tables[math.floor(self.phasor)])*self.volume
+        output = (self.wave_tables[math.floor(self.phasor)])
+
+        if output > 32768:
+            output = (65536 -((output - 32768)*self.volume))
+        else:
+            output = output*self.volume
 
         return output
 

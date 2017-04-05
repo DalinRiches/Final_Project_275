@@ -41,9 +41,6 @@ class wavetable:
             samplerate = wav.getframerate()
 
             num_frame = wav.getnframes()
-            print(data_size)
-            print(wav.getcompname())
-            print(num_frame)
             pos = 2048*wtpos
             wav.setpos(pos)
 
