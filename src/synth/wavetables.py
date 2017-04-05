@@ -3,35 +3,41 @@ import math
 import struct
 
 class wavetable:
+    ''' This class allows for wav files to be parsed into a wavetable.
 
-    #TODO: Get wave table's from WAV files - this allows umlimited possibilites
-    #        will also make it so we don't have to type 700,000 numbers
-    #        will also allow the use of seperate wave tables for each octave
-    #           -Prevents nasty aliasing at high frequency's
+            Only supports single channel wav files.
 
-    def __init__(self,wav=None, wtpos=0):
+        Args:
+            wav: the location of the file to be parsed
+
+        Returns:
+            a list of signed 16 bytes in Little Endian form corresponding to
+            a wavetable with n frames(n wavetable positions) of 2048 samples
+                The list is of length n*2048
+    '''
+
+    def __init__(self,wav=None):
         if wav == None:
             return
 
         else:
-            self.table = self.parse_wavtab(wav, wtpos)
+            self.table = self.parse_wavtab(wav)
 
-    # This is mostly to test the osc
-    def square(self):
-        return [  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-                255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
-                255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255]
 
-    def parse_wavtab(self, wav=None,wtpos=0):
+    def parse_wavtab(self, wav=None):
+        '''
+            This function parses wavetable data from the provided wav file
+
+                Only supports single channel wav files.
+
+            Args:
+                wav: the location of the file to be parsed
+
+            Returns:
+                a list of signed 16 bytes in Little Endian form corresponding to
+                a wavetable with n frames(n wavetable positions) of 2048 samples
+                    The list is of length n*2048
+        '''
         if wav == None:
             return
 
@@ -41,13 +47,13 @@ class wavetable:
             samplerate = wav.getframerate()
 
             num_frame = wav.getnframes()
-            pos = 2048*wtpos
-            wav.setpos(pos)
+            if not num_frame%2048 == 0:
+                num_frame = num_frame - num_frame%2048
 
             frames = []
 
             #read all frames
-            for i in range (0, 2048):
+            for i in range (0, num_frame):
                 frame = wav.readframes(1)
                 frame = struct.unpack('<H', frame)
                 frames.append(frame[0])
@@ -57,3 +63,4 @@ class wavetable:
 
 if __name__ == "__main__":
     table = wavetable(wav='Basic Shapes.wav')
+    print(table)
