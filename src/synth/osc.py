@@ -9,7 +9,7 @@ class wtOsc:
     #TODO: Write documentaion this is basically done
 
 
-    def __init__(self, phasor=0, pInc=0, pOffset=0.5, wave_tables=None, samplerate=22050, detune=0, wavetablepos=0):
+    def __init__(self,freqDict, phasor=0, pInc=0, pOffset=0.5, wave_tables=None, samplerate=44100, detune=0, wavetablepos=0, volume=1):
         self.phasor = phasor
         self.pInc = pInc
         self.pOffset = pOffset
@@ -18,9 +18,10 @@ class wtOsc:
         self.samplerate = samplerate
         self.detune = detune
         self.wavetablepos = wavetablepos
+        self.volume = volume
 
 
-    def genOutput(self, note=None, freq=None):
+    def genOutput(self, freq=None):
         # calculates the phase increment based on the formula:
         # pinc = N * f / fs
         # where N is the number of steps in the wave table
@@ -29,11 +30,7 @@ class wtOsc:
 
 
         if not freq:
-            if not note:
-                return 0
-
-            semitonediff = self._getsemitonediff_f0_(note[0], note[1]) + self.detune
-            freq = self._getfreq_(semitonediff)
+            return 0
 
         self.pInc = self.wavetsize * (freq / self.samplerate)
         self.phasor = self.phasor + self.pInc
@@ -42,18 +39,14 @@ class wtOsc:
         if self.phasor >= self.wavetsize:
             self.phasor = self.phasor - self.wavetsize + 1
 
-        output = self.wave_tables[math.floor(self.phasor)]
+        output = (self.wave_tables[math.floor(self.phasor)])*self.volume
 
         return output
 
 
+    def setdetune(self, detune):
+        detune = detune*12
+        self.detune = detune
 
-
-    def _getfreq_(self, semitonediff):
-        freq = self.tunefreq * (pow(self.a, semitonediff))
-        return freq
-
-    def _getsemitonediff_f0_(self, note, octave):
-        semitonediff = (octave-4)*12
-        semitonediff = semitonediff + self.notes[note]
-        return semitonediff
+    def setvolume(self, volume):
+        self.volume = volume

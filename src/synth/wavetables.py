@@ -9,13 +9,12 @@ class wavetable:
     #        will also allow the use of seperate wave tables for each octave
     #           -Prevents nasty aliasing at high frequency's
 
-    def __init__(self,wav=None):
+    def __init__(self,wav=None, wtpos=0):
         if wav == None:
             return
 
         else:
-            self.table = self.parse_wavtab(wav)
-            print(self.table)
+            self.table = self.parse_wavtab(wav, wtpos)
 
     # This is mostly to test the osc
     def square(self):
@@ -32,7 +31,7 @@ class wavetable:
                 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
                 255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255]
 
-    def parse_wavtab(self, wav=None,wtpos=5):
+    def parse_wavtab(self, wav=None,wtpos=0):
         if wav == None:
             return
 
@@ -45,7 +44,7 @@ class wavetable:
             print(data_size)
             print(wav.getcompname())
             print(num_frame)
-            pos = 256*wtpos
+            pos = 2048*wtpos
             wav.setpos(pos)
 
             frames = []

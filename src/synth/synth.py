@@ -1,27 +1,36 @@
 import numpy as np
 import serial
-import datetime
-import time
 import osc
 import wavetables
 import alsaaudio
+import math
 import threading
+import queue
+
 
 #TODO: Clean this up into a class, this is a placeholder for testing
 #      Make a communications class for serial, for the life of me i can't get pyserial to love me
 
 class synth:
 
-    def __init__(self):
-        self.time_delta = datetime.timedelta(microseconds=46)
-        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav')
-        self.aud = alsaaudio.PCM()
-        self.oscil = osc.wtOsc(wave_tables=self.wave_tables.table)
+    def __init__(self, volume=0.3):
+        self.freqDict = self.gen_freq_table()
+        self.samplerate = 44100
+        self.ard_ex = False
+
+        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav', wtpos=2)
+        self.wave_tables2 = wavetables.wavetable(wav='Basic Shapes.wav', wtpos=2)
+        self.aud = alsaaudio.PCM(mode=alsaaudio.PCM_NONBLOCK)
+        # Use these class objects to change the Oscillator setting's
+        self.oscil = osc.wtOsc(self.freqDict,wave_tables=self.wave_tables.table, volume=0.3, detune=0,samplerate=self.samplerate)
+        self.oscil2 = osc.wtOsc(self.freqDict,wave_tables=self.wave_tables.table, volume=0.75, detune=-12, wavetablepos=0,samplerate=self.samplerate)
+        self.volume = volume
+
 
         self.aud.setchannels(1)
-        self.aud.setrate(22050) # 16000 Hz sample rate
+        self.aud.setrate(self.samplerate) # 22050 Hz sample rate
         self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-        self.audio_preload(self.aud)
+        #self.audio_preload(self.aud)
 
 
 
@@ -31,53 +40,85 @@ class synth:
 
         # The period size controls the internal number of frames per period.
         # The significance of this parameter is documented in the ALSA api.
-        self.aud.setperiodsize(1)
-
-    def play(self, note=None, freq=None, time=0, slide=False):
-
-        if not slide:
-            self.oscil.phasor = 0
-
-        if not time:
-            return
-        self.time_delta2 = datetime.timedelta(seconds=time)
-        starttime = datetime.datetime.now()
-        now = datetime.datetime.now()
-        if freq == None:
-            if note == None:
-                return
-            while now - starttime < self.time_delta2:
-                start = datetime.datetime.now()
-
-                output = self.oscil.genOutput(note=note)
-
-                self.aud.write(np.int16(output))
-
-                while(True):
-                    now = datetime.datetime.now()
-                    if (now - start) > self.time_delta:
-                        break
-
-        else:
-            while now - starttime < self.time_delta2:
-                start = datetime.datetime.now()
-
-                output = self.oscil.genOutput(freq=freq)
-                self.aud.write(np.int16(output))
 
 
-                while(True):
-                    now = datetime.datetime.now()
-                    if (now - start) > self.time_delta:
-                        break
+
+    def gen_freq_table(self):
+        tunefreq = 440
+        a = 1.059463094359 # 2^(1/12)
+        notes = {"C":-9,"B":2,"D":-7,"E":-5,"F":-4,"G":-2,"A":0,"CS":-8,"DS":-6,"FS":-3,"GS":-1,"AS":1}
+        freqDic = {}
+
+        def _getfreq_(semitonediff):
+            freq = tunefreq * (pow(a, semitonediff))
+            return freq
+
+        def _getsemitonediff_f0_(note, octave):
+            semitonediff = (octave-4)*12
+            semitonediff = semitonediff + notes[note]
+            return semitonediff
+
+        for i in range(0,11):
+            for l in notes.keys():
+                semitonedif = _getsemitonediff_f0_(l, i)
+                freq = _getfreq_(semitonedif)
+                freqDic[l+' {}'.format(i)] = freq
+
+        return freqDic
+
+
+
+    def play(self, sequence, slide=False):
+
+        totaltime = 0
+
+        totalsamples = 0
+        samples = []
+
+        for i in sequence:
+            numsamples = i[1] * self.samplerate
+            totalsamples += numsamples
+            notesamp =[]
+            if not slide:
+                self.oscil.phasor = 0
+                self.oscil2.phasor = 0
+
+            freq = self.freqDict[i[0]]
+
+            count = 0
+            while count < numsamples:
+                # This is the order the synth will run
+
+                # Run oscs
+                sig1 = self.oscil.genOutput(freq)
+                sig2 = self.oscil2.genOutput(freq)
+                # Feed into
+
+
+
+
+
+                #mixes the two
+
+                output = ((sig1 + sig2)//2)*self.volume
+                notesamp.append(output)
+                count += 1
+
+            samples.append(notesamp)
+
+        self.aud.setperiodsize(totalsamples*2)
+
+        for i in samples:
+            self.aud.write(np.int16(i))
+
 
 
 
     def audio_preload(self, aud):
-
-        for i in range(0,15000):
+        aud.paus(True)
+        for i in range(0,32000):
             aud.write(np.uint16(1))
-
+        aud.pause(False)
 
 
 
@@ -104,18 +145,16 @@ def logbyte(serial):
 
 
 
+
+
+
 if __name__ == "__main__":
 
     syn = synth();
+    sequence = [['A 3',4],['G 3',4],['F 3',4],['D 4',4],['C 4',4]]
 
-    syn.play(note=['A',4],time=0.5)
-    syn.play(note=['G',4],time=0.5)
-    syn.play(note=['E',4],time=1)
-    syn.play(note=['DS',4],time=0.5)
-    syn.play(note=['B',5],time=0.5)
-    syn.play(note=['FS',4],time=1)
-    # You will get bad aliasing on this one as there isn't a wave table with a high enough resolution to handle this frequency yet
-    syn.play(freq=1000,time=3)
+    syn.play(sequence)
+
 
     '''
     while (True):
