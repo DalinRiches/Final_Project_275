@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <avr/pgmspace.h>
 
 
 void setup() {
@@ -37,11 +38,17 @@ int main() {
 
     while(true){
 
-        if (Serial.available() > 0) {
-            // read the incoming byte
-            byte = Serial.read();
-            // Echo
-            DAC((uint8_t)byte);
+        while (true) {
+          if (Serial.available() > 0){
+            chr = Serial.read(1);
+            if (chr == 'T'){
+              Serial.println('R');
+              break;
+            }
+          }
+        }
+
+        for (int i = 0; i < ; i++){
 
         }
     }

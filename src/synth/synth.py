@@ -5,6 +5,7 @@ import wavetables
 import alsaaudio
 import math
 import envelope
+import filt
 
 
 class synth:
@@ -16,7 +17,7 @@ class synth:
         Contains:
             -Two oscilator's    (Implemented)
             -An envelope for each oscillator    (Implemented)
-            -A single filter both streams get combined then passed through    (Not Implemented)
+            -Two filter's in series. both streams get combined then passed through the first    (Implemented)
             -A single delay the filtered stream is passed through    (Might Implemente)
             -Three LFO's for modulation of parameter's   (Not implemented)
 
@@ -38,27 +39,35 @@ class synth:
     def __init__(self, volume=1):
         self.samplerate = 44100
         self.ard_ex = False
-
-        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav')
-        self.wave_tables2 = wavetables.wavetable(wav='Basic Shapes.wav')
-        self.aud = alsaaudio.PCM(mode=alsaaudio.PCM_NONBLOCK)
-        # Use these class objects to change the Oscillator setting's
-        self.oscil = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
-        self.oscil2 = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=6, samplerate=self.samplerate)
-        self.env1 = envelope.envelope(self.samplerate,0.019,1,0.2)
-        self.env2 = envelope.envelope(self.samplerate,0.019,1,2)
         self.volume = volume
 
-
+        # Open audio channel
+        self.aud = alsaaudio.PCM(mode=alsaaudio.PCM_NONBLOCK)
         self.aud.setchannels(1)
-        self.aud.setrate(self.samplerate) # 22050 Hz sample rate
+        self.aud.setrate(self.samplerate)
         self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+
+        # Load default wavetables
+        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav')
+        self.wave_tables2 = wavetables.wavetable(wav='Basic Shapes.wav')
+
+        # Load osc's
+        self.oscil = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil2 = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=17, wavetablepos=0, samplerate=self.samplerate)
+
+        # Load Envolopes
+        self.env1 = envelope.envelope(self.samplerate,0.5,1,2)
+        self.env2 = envelope.envelope(self.samplerate,1,1,0.2)
+
+        # Load Filter's
+        self.fil1 = filt.filter()
+        self.fil2 = filt.filter()
+        self.mix_past = [0,0]
+        self.fil1_past = [0,0]
+
+
+
         #self.audio_preload(self.aud)
-
-
-
-        #ser =  serial.Serial(port='/dev/ttyACM5', baudrate=250000)
-
 
 
         # The period size controls the internal number of frames per period.
@@ -103,7 +112,7 @@ class synth:
 
 
 
-    def play(self, sequence, slide=False, ard_rec=False):
+    def play(self, sequence, slide=True, ard_rec=False):
         '''
             This function takes a squence and generates and plays the audio for that sequence.
 
@@ -130,7 +139,7 @@ class synth:
         for i in sequence:
             numsamples = i[1] * self.samplerate
             totalsamples += math.floor(numsamples)
-            notesamp =[]
+            notesamp = []
             if not slide:
                 self.oscil.phasor = 0
                 self.oscil2.phasor = 0
@@ -151,18 +160,73 @@ class synth:
                 sig1 = sig1*self.env1.gen_env(count)
                 sig2 = sig2*self.env2.gen_env(count)
 
-
                 #mixes the two
                 output = ((sig1 + sig2)//2)*self.volume
+
+                del self.mix_past[0]
+                self.mix_past.append(output)
+
+                # Feeds into the filter's
+                self.fil1_past.append(self.fil1.generate_output(self.mix_past))
+                del self.fil1_past[0]
+                output = self.fil2.generate_output(self.fil1_past)
+
                 notesamp.append(output)
                 count += 1
 
             samples.append(notesamp)
 
-        self.aud.setperiodsize(totalsamples*2)
+        self.aud.setperiodsize((totalsamples*2) -1)
 
-        for i in samples:
-            self.aud.write(np.int16(i))
+        if ard_rec == False:
+            for i in samples:
+                self.aud.write(np.int16(i))
+        else:
+            count = 0
+            for i in samples[0]:
+
+                if i > 0:
+
+                    samples[0][count] = (i/32768) * 255
+                elif i < 0:
+
+                    samples[0][count] =  255 - ((i/32768) * 255)
+
+                else:
+                    samples[0][count] = 0
+
+                print(samples[0][count])
+                count += 1
+
+            try:
+                with serial.Serial(port='/dev/ttyACM0', baudrate=250000) as ser:
+
+                    ser.write(b'Upload\n')
+                    while(True):
+                        if ser.in_waiting > 2:
+                            reply = ser.read(2)
+                            print(ser.in_waiting)
+                            break
+
+                    if reply == 'R\n':
+
+                        for i in samples[0]:
+                            ser.write(bytes([i]))
+                            print('Yay')
+
+
+
+
+            except serial.SerialException:
+                print("Could not open port")
+
+
+            for i in samples:
+                pass
+
+
+
+
 
 
 
@@ -178,8 +242,8 @@ class synth:
 if __name__ == "__main__":
 
     syn = synth();
-    sequence = [[['A',4],4],[['G',4],2],[['F',4],2],[['A',4],0.5],[['G',4],0.5],[['F',4],0.5],[['A',4],0.5],
-                    [['G',4],1],[['F',4],1]]
+    sequence = [[['A',3],4],[['G',3],4],[['F',3],4],[['A',3],2],[['G',3],2],[['F',3],0.5],[['A',3],0.5],
+                    [['G',3],1],[['F',3],1]]
 
     syn.play(sequence)
 
