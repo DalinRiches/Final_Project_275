@@ -56,8 +56,8 @@ class synth:
         self.oscil2 = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=17, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
-        self.env1 = envelope.envelope(self.samplerate,0.5,1,2)
-        self.env2 = envelope.envelope(self.samplerate,1,1,0.2)
+        self.env1 = envelope.envelope(self.samplerate,0.5,1,2,0.5)
+        self.env2 = envelope.envelope(self.samplerate,1,1,0.2,0.5)
 
         # Load Filter's
         self.fil1 = filt.filter()

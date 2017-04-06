@@ -19,10 +19,11 @@ class envelope:
                 nothing
     '''
 
-    def __init__(self, samplerate, attack, decay, sustain, release=0):
+    def __init__(self, samplerate, attack, decay, sustain, sustain_amp, release=0):
         self.attacksamples = attack * samplerate
         self.decaysamples = decay * samplerate
         self.sustainsamples = sustain * samplerate
+        self.sustain_amp = sustain_amp
         self.releasesamples = 0
         self.samplerate = samplerate
 
@@ -43,8 +44,9 @@ class envelope:
             return 1
 
         elif (curr_sample - self.decaysamples - self.attacksamples) < self.sustainsamples:
-            num = curr_sample - self.decaysamples - self.attacksamples
-            return (1 - num/self.sustainsamples)
+            num = (((self.sustain_amp - 1)/self.sustainsamples)*(curr_sample - self.decaysamples - self.attacksamples) + 1)
+            
+            return num
 
         else:
             return 0
