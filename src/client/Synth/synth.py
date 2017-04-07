@@ -1,12 +1,12 @@
 import numpy as np
 import serial
-import osc
-import wavetables
+import Synth.osc
+import Synth.wavetables
 import alsaaudio
 import math
 import time
-import envelope
-import filt
+import Synth.envelope
+import Synth.filt
 
 
 class synth:
@@ -52,28 +52,22 @@ class synth:
         self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)
 
         # Load default wavetables
-        self.wave_tables = wavetables.wavetable(wav='Basic Shapes.wav')
-        self.wave_tables2 = wavetables.wavetable(wav='Basic Shapes.wav')
+        self.wave_tables = Synth.wavetables.wavetable(wav='./Synth/Basic Shapes.wav')
+        self.wave_tables2 = Synth.wavetables.wavetable(wav='./Synth/Basic Shapes.wav')
 
         # Load osc's
-        self.oscil = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=12, wavetablepos=0, samplerate=self.samplerate)
-        self.oscil2 = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=12, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil2 = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
-        self.env1 = envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
-        self.env2 = envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
+        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
+        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
 
         # Load Filter's
-        self.fil1 = filt.filter()
-        self.fil2 = filt.filter()
+        self.fil1 = Synth.filt.filter()
+        self.fil2 = Synth.filt.filter()
         self.mix_past = [0,0]
         self.fil1_past = [0,0]
-
-
-
-
-        #self.audio_preload(self.aud)
-
 
         # The period size controls the internal number of frames per period.
         # The significance of this parameter is documented in the ALSA api.
@@ -243,28 +237,10 @@ class synth:
                             if reply == b'R':
                                 break
 
-
-
-
-
-
-
-
             except serial.SerialException:
                 print("Could not open port")
 
 
-
-
-
-
-
-
-    def audio_preload(self, aud):
-        aud.paus(True)
-        for i in range(0,32000):
-            aud.write(np.uint16(1))
-        aud.pause(False)
 
 
 
