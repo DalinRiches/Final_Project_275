@@ -4,7 +4,7 @@ import struct
 
 class wavetable:
     ''' This class allows for wav files to be parsed into a wavetable.
-        Wavtable's sourced from,
+        All wavetables created using Serum by Xfer, specifically Serum's wavetable editor.
 
             Only supports single channel wav files.
 

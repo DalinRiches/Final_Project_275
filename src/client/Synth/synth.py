@@ -16,16 +16,62 @@ class synth:
         will be supported.
 
         Contains:
-            -Two oscilator's    (Implemented)
-            -An envelope for each oscillator    (Implemented)
-            -Two filter's in series. Both streams get combined then passed through the first    (Implemented)
+            -Two oscilator's
+            -An envelope for each oscillator
+            -Two filter's in series. Both streams get combined then passed through the first
             -A single delay the filtered stream is passed through    (Might Implemente)
             -Three LFO's for modulation of parameter's   (Not implemented)
 
-        Controlling these is simple as each of these objects are created when a synth class
-        is created.
+        It is recommended that you control everything through the synth class:
+            Controls possible with the synth class:
 
-        Audio playback takes a sequence from the sequencer, which will probably be made in the gui stuff.
+
+                Oscillator's (names: oscil and oscil2):
+
+                    Detune (semitones):
+                        synth_class_object.<oscilator>.detune
+
+                    Wavetable Position (frame):
+                        synth_class_object.<oscilator>.wavetablepos
+
+                    Volume (scaling factor from 0 to 1):
+                        synth_class_object.<oscilator>.volume
+
+                    Phase offset (phase):
+                        synth_class_object.<oscilator>.pOffest
+
+                    Disable (bool):
+                        synth_class_object.<oscilator>.enable
+
+
+                Envelope's (names: env1 and env2):
+
+                    Attack (time):
+                        synth_class_object.<envelope>.set_attack(time)
+
+                    Decay (time):
+                        synth_class_object.<envelope>.set_decay(time)
+
+                    Sustain (time, amplitude):
+                        synth_class_object.<envelope>.set_sustain(time, amplitude)
+
+                    Release (time):
+                        synth_class_object.<envelope>.set_release(time)
+
+
+                Filter's (names: fil1 and fil2):
+
+                    To set as a highpass filter or change the cutoff of a existing highpass:
+                        synth_class_object.<filter>.set_cutoff_highpass(cutoff)
+
+                    To set as a lowpass filter or change the cutoff of a existing lowpass:
+                        synth_class_object.<filter>.set_cutoff_lowpass(cutoff)
+
+
+                Changing wavetables is not supported yet.
+
+
+        Audio playback takes a sequence from the sequencer, which will be made in the GUI.
         It then generates the audio for the entire sequence and plays it back through the speaker.
         If set to upload to arduino it does not output to speakers and converts the bitstream from
         PCM_FORMAT_S16_LE to uint8_t which the arduino downloads and plays on reset
@@ -33,7 +79,7 @@ class synth:
                 to 22050 Hz we can upload ~0.37 seconds of sound data.
 
             Args:
-                volume=1    float, scaling factor for final audio stream amplitude
+                volume=0.75    float, scaling factor for final audio stream amplitude
 
             Returns:
                 None

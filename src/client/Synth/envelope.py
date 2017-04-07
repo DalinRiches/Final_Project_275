@@ -28,6 +28,19 @@ class envelope:
         self.releasesamples = release * samplerate
         self.samplerate = samplerate
 
+    def set_attack(self, time):
+        self.attacksamples = time * self.samplerate
+
+    def set_decay(self, time):
+        self.decaysamples = time * self.samplerate
+
+    def set_sustain(self, time, amp):
+        self.sustain_amp = amp
+        self.sustainsamples = time * self.samplerate
+
+    def set_release(self, time):
+        self.releasesamples = time * self.samplerate
+
     def gen_env(self, curr_sample, inp):
         '''
         This function outputs the scaling factor based on the current sample

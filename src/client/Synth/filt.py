@@ -20,6 +20,7 @@ class filter:
         self.filtertype = 'Low Pass'
 
 
+
     def generate_output(self, inp):
         if self.filtertype == 'High Pass':
             output = (self.alpha_hp * (self.past_output + inp[0] - inp[1]))

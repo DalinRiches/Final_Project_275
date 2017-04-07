@@ -29,6 +29,7 @@ class wtOsc:
     '''
 
     def __init__(self, phasor=0, pOffset=0.5, wave_tables=None, samplerate=44100, detune=0, wavetablepos=0, volume=1):
+        self.enable = True
         self.phasor = phasor
         self.pInc = 0
         self.pOffset = pOffset
@@ -55,6 +56,8 @@ class wtOsc:
         # where N is the number of steps in the wave table
         #       f is the frequency we want to generate
         #       fs is the sample frequency or sample rate
+        if self.enable == False:
+            return 0
         if not freq:
             return 0
 
