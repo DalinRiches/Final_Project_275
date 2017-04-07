@@ -6,8 +6,8 @@ class filter:
         self.samplerate = samplerate
         self.filtertype = 'Low Pass'
         self.past_output = 0
-        self.set_cutoff_highpass(440)
-        self.set_cutoff_lowpass(2000)
+        self.set_cutoff_highpass(100)
+        self.set_cutoff_lowpass(10000)
 
     def set_cutoff_highpass(self, cutoff):
         self.cutoff_hp = cutoff

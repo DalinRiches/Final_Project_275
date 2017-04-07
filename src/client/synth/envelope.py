@@ -1,3 +1,4 @@
+import math
 
 class envelope:
     '''
@@ -19,34 +20,39 @@ class envelope:
                 nothing
     '''
 
-    def __init__(self, samplerate, attack, decay, sustain, sustain_amp, release=0):
+    def __init__(self, samplerate, attack, decay, sustain, sustain_amp, release):
         self.attacksamples = attack * samplerate
         self.decaysamples = decay * samplerate
         self.sustainsamples = sustain * samplerate
         self.sustain_amp = sustain_amp
-        self.releasesamples = 0
+        self.releasesamples = release * samplerate
         self.samplerate = samplerate
 
-    def gen_env(self, curr_sample):
+    def gen_env(self, curr_sample, inp):
         '''
         This function outputs the scaling factor based on the current sample
 
             Args:
                 curr_sample: int, corresponding to the current sample number being processed
 
-            Returns:
-                float from 0 to 1
-        '''
-        if curr_sample < self.attacksamples:
-            return curr_sample/self.attacksamples
+                inp:    float, corresponding to an input audio stream
 
-        elif (curr_sample - self.decaysamples) < self.decaysamples:
-            return 1
+            Returns:
+                float, corresponding to the scaled suadio stream
+        '''
+
+        if curr_sample < self.attacksamples:
+            return (curr_sample/self.attacksamples) * inp
+
+        elif (curr_sample - self.attacksamples) < self.decaysamples:
+            return (((self.sustain_amp - 1)/self.decaysamples)*(curr_sample - self.attacksamples) + 1) * inp
 
         elif (curr_sample - self.decaysamples - self.attacksamples) < self.sustainsamples:
-            num = (((self.sustain_amp - 1)/self.sustainsamples)*(curr_sample - self.decaysamples - self.attacksamples) + 1)
-            
-            return num
+            return self.sustain_amp * inp
+
+        elif (curr_sample - self.decaysamples - self.attacksamples - self.sustainsamples) <= self.releasesamples:
+            sample = (curr_sample - self.decaysamples - self.attacksamples - self.sustainsamples)
+            return ((-self.sustain_amp/self.releasesamples)*sample + self.sustain_amp) * inp
 
         else:
             return 0

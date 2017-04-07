@@ -4,6 +4,7 @@ import osc
 import wavetables
 import alsaaudio
 import math
+import time
 import envelope
 import filt
 
@@ -17,17 +18,19 @@ class synth:
         Contains:
             -Two oscilator's    (Implemented)
             -An envelope for each oscillator    (Implemented)
-            -Two filter's in series. both streams get combined then passed through the first    (Implemented)
+            -Two filter's in series. Both streams get combined then passed through the first    (Implemented)
             -A single delay the filtered stream is passed through    (Might Implemente)
             -Three LFO's for modulation of parameter's   (Not implemented)
 
-        Controlling these is simple as each of their objects are created when a synth class
+        Controlling these is simple as each of these objects are created when a synth class
         is created.
 
         Audio playback takes a sequence from the sequencer, which will probably be made in the gui stuff.
         It then generates the audio for the entire sequence and plays it back through the speaker.
         If set to upload to arduino it does not output to speakers and converts the bitstream from
         PCM_FORMAT_S16_LE to uint8_t which the arduino downloads and plays on reset
+            -For arduino download the arduino only has 8KB of SRAM so if we cut the samplerate
+                to 22050 Hz we can upload ~0.37 seconds of sound data.
 
             Args:
                 volume=1    float, scaling factor for final audio stream amplitude
@@ -36,10 +39,11 @@ class synth:
                 None
     '''
 
-    def __init__(self, volume=1):
+    def __init__(self, volume=0.75):
         self.samplerate = 44100
         self.ard_ex = False
         self.volume = volume
+        self.feed = list()
 
         # Open audio channel
         self.aud = alsaaudio.PCM(mode=alsaaudio.PCM_NONBLOCK)
@@ -52,18 +56,19 @@ class synth:
         self.wave_tables2 = wavetables.wavetable(wav='Basic Shapes.wav')
 
         # Load osc's
-        self.oscil = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
-        self.oscil2 = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=17, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=12, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil2 = osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
-        self.env1 = envelope.envelope(self.samplerate,0.5,1,2,0.5)
-        self.env2 = envelope.envelope(self.samplerate,1,1,0.2,0.5)
+        self.env1 = envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
+        self.env2 = envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
 
         # Load Filter's
         self.fil1 = filt.filter()
         self.fil2 = filt.filter()
         self.mix_past = [0,0]
         self.fil1_past = [0,0]
+
 
 
 
@@ -112,7 +117,7 @@ class synth:
 
 
 
-    def play(self, sequence, slide=True, ard_rec=False):
+    def play(self, sequence, slide=False, ard_rec=False):
         '''
             This function takes a squence and generates and plays the audio for that sequence.
 
@@ -156,17 +161,33 @@ class synth:
                 sig2 = self.oscil2.genOutput(freq2)
 
 
-                # Feed into envolope
-                sig1 = sig1*self.env1.gen_env(count)
-                sig2 = sig2*self.env2.gen_env(count)
+                # Feed into envelope
+                sig1 = self.env1.gen_env(count, sig1)
+                sig2 = self.env2.gen_env(count, sig2)
 
-                #mixes the two
-                output = ((sig1 + sig2)//2)*self.volume
 
+                tot = 0
+                if not sig1 == None:
+                    tot += sig1
+
+                if not sig2 == None:
+                    tot += sig2
+
+                #mixes the feed
+                tot = (tot//math.sqrt(2))*self.volume
+
+                # Limits the feed, if tot > 100% volume clip it to 100%
+                if tot > 32768:
+                    tot = 32768
+                elif tot < -32768:
+                    tot = -32768
+
+                output = tot
                 del self.mix_past[0]
                 self.mix_past.append(output)
 
                 # Feeds into the filter's
+
                 self.fil1_past.append(self.fil1.generate_output(self.mix_past))
                 del self.fil1_past[0]
                 output = self.fil2.generate_output(self.fil1_past)
@@ -182,47 +203,55 @@ class synth:
             for i in samples:
                 self.aud.write(np.int16(i))
         else:
-            count = 0
-            for i in samples[0]:
+            ard_bytes = []
+            for i in range(0,8100):
 
-                if i > 0:
+                if samples[0][i] > 0:
 
-                    samples[0][count] = (i/32768) * 255
-                elif i < 0:
+                    ard_bytes.append(math.floor((samples[0][i]/32768) * 255))
+                elif samples[0][i] < 0:
 
-                    samples[0][count] =  255 - ((i/32768) * 255)
+                    ard_bytes.append(math.floor(255 - ((samples[0][i]/32768) * 255)))
 
                 else:
-                    samples[0][count] = 0
+                    ard_bytes.append(0)
 
-                print(samples[0][count])
-                count += 1
+
 
             try:
-                with serial.Serial(port='/dev/ttyACM0', baudrate=250000) as ser:
+                print(ard_bytes)
+                with serial.Serial(port='/dev/ttyACM13', baudrate=9600) as ser:
 
-                    ser.write(b'Upload\n')
                     while(True):
-                        if ser.in_waiting > 2:
-                            reply = ser.read(2)
-                            print(ser.in_waiting)
+                        if ser.in_waiting > 0:
+                            junk = ser.read(1)
+
+                        if ser.in_waiting == 0:
                             break
 
-                    if reply == 'R\n':
+                    time.sleep(5)
+                    count = 0
+                    ser.write(b'RRR')
+                    for i in range(0, 8100):
+                        count += 1
+                        ser.write(b'T')
+                        ser.write(bytes([ard_bytes[i],]))
 
-                        for i in samples[0]:
-                            ser.write(bytes([i]))
-                            print('Yay')
+                        print(count)
+                        while(True):
+                            reply = ser.read(1)
+                            if reply == b'R':
+                                break
+
+
+
+
 
 
 
 
             except serial.SerialException:
                 print("Could not open port")
-
-
-            for i in samples:
-                pass
 
 
 

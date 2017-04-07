@@ -4,6 +4,7 @@ import struct
 
 class wavetable:
     ''' This class allows for wav files to be parsed into a wavetable.
+        Wavtable's sourced from,
 
             Only supports single channel wav files.
 
