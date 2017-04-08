@@ -100,7 +100,7 @@ class synth:
         self.feed = list()
 
         # Open audio channel
-        self.aud = alsaaudio.PCM(mode=alsaaudio.PCM_NONBLOCK)
+        self.aud = alsaaudio.PCM()
         self.aud.setchannels(1)
         self.aud.setrate(self.samplerate)
         self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)

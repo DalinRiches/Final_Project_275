@@ -191,7 +191,7 @@ class OscPanel(SynthPanel):
     def _dials(self):
         return [
             {'label': "Waveshape",
-             'dmin': 0, 'dmax': 15, 'dincrement': 1,
+             'dmin': 0, 'dmax': 6, 'dincrement': 1,
              'dinitial': 0,
              'callback': self._set_waveshape },
             {'label': "Volume",
@@ -208,14 +208,14 @@ class OscPanel(SynthPanel):
     
     
     def _graph_fx(self, x):
-        wtx = (2048 * x) // PANEL_GS_WIDTH
+        wtx = self.target.wavetablepos + ((2048 * x) // PANEL_GS_WIDTH)
         wtval = (self.target.wave_tables[wtx] + 32768) % 65536
         return PANEL_GS_HEIGHT * wtval // 65536
     
     
     def _set_waveshape(self, value, label):
-        # TODO still don't know how to set waveshapes.
-        pass
+        self.target.wavetablepos = int(value + 0.001) * 2048
+        self.w_graph.redraw()
 
 
 class EnvPanel(SynthPanel):
@@ -275,19 +275,6 @@ class EnvPanel(SynthPanel):
         self.w_graph.redraw()
     
     
-    # def _gen_sustain(self, value):
-        # # value is amplitude; determine time based
-        # # on total note time
-        #
-        # time = max(0.0, (0.6 - self._val_atk - self._val_dec - self._val_rel))
-        # self.target.set_sustain(time, value)
-        # self.w_graph.redraw()
-        #
-        # #print("A {} | D {} | S {} | R {} || a {}".format(self._val_atk,
-        # #    self._val_dec, time, self._val_rel, value
-        # #))
-    
-    
     def _set_sustain(self, value, label):
         if label == "Sustain":
             self._val_sus_time = value
@@ -339,6 +326,10 @@ class FiltPanel(SynthPanel):
              'dinitial': -5,
              'callback': self._log_set_cutoff}
         ]
+    
+    
+    def _graph_fx(self, x):
+        return PANEL_GS_HEIGHT/2
     
     
     def _log_set_cutoff(self, value, label):

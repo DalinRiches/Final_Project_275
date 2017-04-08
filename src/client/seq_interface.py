@@ -102,21 +102,6 @@ def setup(synth):
     
     oscframe = tkinter.Frame()
     
-    # osc1ct = synthwidgets.OscController(
-    #     parent=oscframe,
-    #     oscillator=synth.oscil,
-    #     volume=0.75,
-    #     waveshape=0,
-    #     detune=0
-    # )
-    # osc2ct = synthwidgets.OscController(
-    #     parent=oscframe,
-    #     oscillator=synth.oscil2,
-    #     volume=0.75,
-    #     waveshape=0,
-    #     detune=0
-    # )
-    
     osc1ct = synthwidget.OscPanel(
         parent=oscframe,
         target=synth.oscil
@@ -125,30 +110,18 @@ def setup(synth):
         parent=oscframe,
         target=synth.oscil2
     )
-    # filt1ct = synthwidget.FiltPanel(
-    #     parent=oscframe,
-    #     target=synth.fil1
-    # )
+    filt1ct = synthwidget.FiltPanel(
+        parent=oscframe,
+        target=synth.fil1
+    )
     
-    # ctrl.bind(osc1ct.apply)
-    # ctrl.bind(osc2ct.apply)
     osc1ct.pack(side=LEFT, fill=X)
     osc2ct.pack(side=LEFT, fill=X)
-    # filt1ct.pack(side=LEFT, fill=X)
+    filt1ct.pack(side=LEFT, fill=X)
     oscframe.pack(side=TOP, fill=X)
     
     envframe = tkinter.Frame()
     
-    # env1ct = synthwidgets.EnvController(
-    #     parent=envframe,
-    #     envelope=synth.env1,
-    #     adsr=[0.1, 0.2, 0.9, 0.1]
-    # )
-    # env2ct = synthwidgets.EnvController(
-    #     parent=envframe,
-    #     envelope=synth.env2,
-    #     adsr=[0.1, 0.2, 0.9, 0.1]
-    # )
     env1ct = synthwidget.EnvPanel(
         parent=envframe,
         target=synth.env1
@@ -157,22 +130,14 @@ def setup(synth):
         parent=envframe,
         target=synth.env2
     )
-    # filt2ct = synthwidget.FiltPanel(
-    #     parent=envframe,
-    #     target=synth.fil2
-    # )
+    filt2ct = synthwidget.FiltPanel(
+        parent=envframe,
+        target=synth.fil2
+    )
     
-    # panelframe.grid()
-    # osc1ct.grid(column=0, row=0)
-    # osc2ct.grid(column=1, row=0)
-    # env1ct.grid(column=0, row=1)
-    # env2ct.grid(column=1, row=1)
-    
-    # ctrl.bind(env1ct.apply)
-    # ctrl.bind(env2ct.apply)
     env1ct.pack(side=LEFT, fill=X)
     env2ct.pack(side=LEFT, fill=X)
-    # filt2ct.pack(side=LEFT, fill=X)
+    filt2ct.pack(side=LEFT, fill=X)
     envframe.pack(side=TOP, fill=X)
     
     ctrlbar = gen_controlbar(tk, ctrl)
