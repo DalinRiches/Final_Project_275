@@ -15,8 +15,9 @@ class Dial:
             when double-clicked.
         label: (str) label for the dial.
         callback: (function) function to be called when the dial
-            setting is changed. Will be passed the new value and
-            the label of the dial.
+            setting is changed. Will be passed the new value, and
+            the label of the dial if it is a three-argument
+            function.
         dmintext: (str) (optional) label for the minimum value.
             If unset defaults to the string representation of
             the actual minimum value.
@@ -137,7 +138,18 @@ class Dial:
         self.widget.coords(self.wd_indic, x1, y1, x2, y2)
         
         self.value = self.angle_to_val(angle)
-        self.callback(self.value, self.label)
+        self._callback(self.value, self.label)
+    
+    
+    def _callback(self, value, label):
+        argc = self.callback.__code__.co_argcount # ...
+        if argc == 3:
+            self.callback(value, label)
+        elif argc == 2:
+            self.callback(value)
+        else:
+            raise RuntimeError("Invalid callback signature in dial")
+    
     
     def mouse_dbl(self, ev):
         self.set_value_by_angle(self.val_to_angle(self.dinitial))

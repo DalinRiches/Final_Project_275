@@ -46,7 +46,7 @@ class PlaybackController:
         
         seq = self.get_sequence()
         print("Playing...")
-        self.synth.play(seq)
+        self.synth.play(seq, slide=True)
         print("Done")
         
     
@@ -125,11 +125,16 @@ def setup(synth):
         parent=oscframe,
         target=synth.oscil2
     )
+    # filt1ct = synthwidget.FiltPanel(
+    #     parent=oscframe,
+    #     target=synth.fil1
+    # )
     
     # ctrl.bind(osc1ct.apply)
     # ctrl.bind(osc2ct.apply)
     osc1ct.pack(side=LEFT, fill=X)
     osc2ct.pack(side=LEFT, fill=X)
+    # filt1ct.pack(side=LEFT, fill=X)
     oscframe.pack(side=TOP, fill=X)
     
     envframe = tkinter.Frame()
@@ -152,6 +157,10 @@ def setup(synth):
         parent=envframe,
         target=synth.env2
     )
+    # filt2ct = synthwidget.FiltPanel(
+    #     parent=envframe,
+    #     target=synth.fil2
+    # )
     
     # panelframe.grid()
     # osc1ct.grid(column=0, row=0)
@@ -163,6 +172,7 @@ def setup(synth):
     # ctrl.bind(env2ct.apply)
     env1ct.pack(side=LEFT, fill=X)
     env2ct.pack(side=LEFT, fill=X)
+    # filt2ct.pack(side=LEFT, fill=X)
     envframe.pack(side=TOP, fill=X)
     
     ctrlbar = gen_controlbar(tk, ctrl)

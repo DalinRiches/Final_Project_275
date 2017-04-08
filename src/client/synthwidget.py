@@ -75,6 +75,9 @@ class SynthPanel:
         
         self.w_graph.pack(side=TOP)
         
+        # special init
+        self._special_init()
+        
         # dials
         self._dial_targets = dict()
         for dial in self._dials():
@@ -82,6 +85,13 @@ class SynthPanel:
         
         # Toggle from False to True for consistency
         self._toggle_enabled()
+    
+    
+    def _special_init(self):
+        ''' Subclasses can override this to set up specific
+        widgets without having to modify __init__ itself. It
+        is called just before the dials are generated. '''
+        pass
     
     
     def _dials(self):
@@ -105,12 +115,20 @@ class SynthPanel:
         if 'callback' in kwargs and 'target' in kwargs:
             print("*** SynthPanel WARNING: Dial {} of widget {} "
                   "specifies both target parameter and callback. "
-                  "Only the callback will function.")
+                  "Only the callback will function.".format(
+                    kwargs['label'], self._label))
         
         # convert targets to callbacks
         if 'callback' not in kwargs and 'target' in kwargs:
             kwargs['callback'] = self._set_param
             target = kwargs['target']
+            
+            if target not in self.target.__dict__:
+                print("*** SynthPanel WARNING: Dial {} of widget {} "
+                      "targets parameter {} of {}, which doesn't look "
+                      "like it exists.".format(
+                        kwargs['label', self._label, target, self.target]))
+            
             del kwargs['target']
         else:
             target = None
@@ -132,7 +150,7 @@ class SynthPanel:
         else:
             self.w_toggle.config(text=" ON", bg="green")
         self.enabled = not self.enabled
-        self.target.enabled = self.enabled
+        self.target.enable = self.enabled
     
     
     def _set_param(self, value, label):
@@ -184,31 +202,110 @@ class EnvPanel(SynthPanel):
     
     _label = "Envelope"
     
+    
+    def _special_init(self):
+        self._val_atk = 0.1
+        self._val_dec = 0.2
+        self._val_rel = 0.2
+    
+    
     def _dials(self):
         return [
             {'label': "Attack",
              'dmin': 0, 'dmax': 2,
-             'dinitial': 0.1,
-             'target': 'attack'},
+             'dinitial': self._val_atk,
+             'callback': self._set_adsr},
             {'label': "Decay",
              'dmin': 0, 'dmax': 2,
-             'dinitial': 0.2,
-             'target': 'decay'},
+             'dinitial': self._val_dec,
+             'callback': self._set_adsr},
             {'label': "Sustain",
              'dmin': 0, 'dmax': 1,
              'dmintext': "0.0", 'dmaxtext': "1.0",
              'dinitial': 0.8,
-             'target': 'sustain_amp'},
+             'callback': self._gen_sustain},
             {'label': "Release",
              'dmin': 0, 'dmax': 2,
-             'dinitial': 0.2,
-             'target': 'release'}
+             'dinitial': self._val_rel,
+             'callback': self._set_adsr}
         ]
+    
+    
+    def _set_adsr(self, value, label):
+        if label == "Attack":
+            self.target.set_attack(value)
+            self._val_atk = value
+        elif label == "Decay":
+            self.target.set_decay(value)
+            self._val_dec = value
+        elif label == "Release":
+            self.target.set_release(value)
+            self._val_rel = value
+    
+    
+    def _gen_sustain(self, value):
+        # value is amplitude; determine time based
+        # on total note time
+        
+        time = max(0.0, (0.5 - self._val_atk - self._val_dec))
+        self.target.set_sustain(time, value)
+        
+        #print("A {} | D {} | S {} | R {} || a {}".format(self._val_atk,
+        #    self._val_dec, time, self._val_rel, value
+        #))
 
 
 class FiltPanel(SynthPanel):
     ''' SynthPanel for a Filter component. '''
-    pass
+    
+    _label = "Filter"
+    
+    def _special_init(self):
+        self.band = "Low Pass"
+        self._last_value = -5
+        
+        # Low-pass/High-pass toggle
+        self.w_band = tkinter.Button(
+            self.w_bot,
+            text="###",
+            justify=CENTER,
+            font=PANEL_FONT+" 9",
+            command=self._toggle_band
+        )
+        self.w_band.pack(side=LEFT, fill=X, padx=3)
+        
+        self._toggle_band()
+    
+    
+    def _toggle_band(self):
+        if self.band == "Low Pass":
+            self.w_band.config(text="HIGH", bg="darkcyan")
+            self.band = "High Pass"
+            self._log_set_cutoff(self._last_value, None)
+        else:
+            self.w_band.config(text=" LOW", bg="blue")
+            self.band = "Low Pass"
+            self._log_set_cutoff(self._last_value, None)
+    
+    
+    def _dials(self):
+        return [
+            {'label': "Cutoff",
+             'dmin':-5, 'dmax':5, # (logarithmic scaled)
+             'dmintext':"E-5", 'dmaxtext':"E+5",
+             'dinitial': -5,
+             'callback': self._log_set_cutoff}
+        ]
+    
+    
+    def _log_set_cutoff(self, value, label):
+        print("Setting to {}, cutoff = {}".format(self.band, 10**value))
+        self._last_value = value
+        if self.band == "High Pass":
+            self.target.set_cutoff_highpass(10**value)
+        else:
+            self.target.set_cutoff_lowpass(10**value)
+
 
 class LFOPanel(SynthPanel):
     pass
