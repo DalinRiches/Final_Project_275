@@ -13,9 +13,11 @@ class Dial:
         dinitial: (float) default value for the dial. It will be
             instantiated with this value and will return to it
             when double-clicked.
-        text: (str) label for the dial.
+        label: (str) label for the dial.
         callback: (function) function to be called when the dial
-            setting is changed. Will be passed the new value.
+            setting is changed. Will be passed the new value, and
+            the label of the dial if it is a three-argument
+            function.
         dmintext: (str) (optional) label for the minimum value.
             If unset defaults to the string representation of
             the actual minimum value.
@@ -28,7 +30,7 @@ class Dial:
             may cause multiples to be somewhat inexact, which
             may be problematic in certain situations.
     '''
-    def __init__(self, parent, dmin, dmax, dinitial, text, callback,
+    def __init__(self, parent, dmin, dmax, dinitial, label, callback,
                  dmintext=None, dmaxtext=None, dincrement=None):
         # Basic parameters: minimum, maximum, initial values
         self.dmin = dmin
@@ -36,7 +38,7 @@ class Dial:
         self.dinitial = dinitial
         
         # Text: main label, min value text, max value text
-        self.text = text
+        self.label = label
         
         # If no min/max labels specified, use values
         if dmintext is None:
@@ -72,7 +74,7 @@ class Dial:
         # Subitems of widget:
         # Main text label
         self.wd_label = self.widget.create_text(
-            25, 6, justify="center", fill="white", font="Fixed 6", text=text)
+            25, 6, justify="center", fill="white", font="Fixed 6", text=label)
         # Min value label
         self.wd_minlabel = self.widget.create_text(
             25-15-3, 30+15, justify="right", fill="white", font="Fixed 4",
@@ -136,7 +138,18 @@ class Dial:
         self.widget.coords(self.wd_indic, x1, y1, x2, y2)
         
         self.value = self.angle_to_val(angle)
-        self.callback(self.value)
+        self._callback(self.value, self.label)
+    
+    
+    def _callback(self, value, label):
+        argc = self.callback.__code__.co_argcount # ...
+        if argc == 3:
+            self.callback(value, label)
+        elif argc == 2:
+            self.callback(value)
+        else:
+            raise RuntimeError("Invalid callback signature in dial")
+    
     
     def mouse_dbl(self, ev):
         self.set_value_by_angle(self.val_to_angle(self.dinitial))
