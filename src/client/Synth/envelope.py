@@ -29,14 +29,14 @@ class envelope:
         self.samplerate = samplerate
 
         # Used by LFO
-        self.set_attack_min = 0
-        self.set_attack_max = 5
+        self.attack_min = 0
+        self.attack_max = 5
 
         self.decay_min = 0
         self.decay_max = 5
 
         self.sustain_min = 0
-        self.sustain_min_max = 5
+        self.sustain_max = 5
 
         self.sustain_amp_min = 0
         self.sustain_amp_max = 1
@@ -74,16 +74,16 @@ class envelope:
                 float, corresponding to the scaled suadio stream
         '''
 
-        if curr_sample < self.attacksamples:
+        if curr_sample < self.attacksamples and not self.attacksamples == 0:
             return (curr_sample/self.attacksamples) * inp
 
-        elif (curr_sample - self.attacksamples) < self.decaysamples:
+        elif ((curr_sample - self.attacksamples) < self.decaysamples) and not self.decaysamples == 0:
             return (((self.sustain_amp - 1)/self.decaysamples)*(curr_sample - self.attacksamples) + 1) * inp
 
         elif (curr_sample - self.decaysamples - self.attacksamples) < self.sustainsamples:
             return self.sustain_amp * inp
 
-        elif (curr_sample - self.decaysamples - self.attacksamples - self.sustainsamples) <= self.releasesamples:
+        elif (curr_sample - self.decaysamples - self.attacksamples - self.sustainsamples) <= self.releasesamples and not self.releasesamples == 0:
             sample = (curr_sample - self.decaysamples - self.attacksamples - self.sustainsamples)
             return ((-self.sustain_amp/self.releasesamples)*sample + self.sustain_amp) * inp
 

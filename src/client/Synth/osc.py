@@ -1,4 +1,5 @@
 import math
+import Synth.wavetables
 
 class wtOsc:
     '''
@@ -31,7 +32,10 @@ class wtOsc:
     def __init__(self, phasor=0, pOffset=0.5, wave_tables=None, samplerate=44100, detune=0, wavetablepos=0, volume=1):
         self.wavetsize = 2048
         self.wave_tables = wave_tables
+        self.wave_tables_num = len(self.wave_tables)/self.wavetsize
         self.samplerate = samplerate
+        self.note = None
+        self.freq = 0
         self.phasor = phasor
         self.pInc = 0
         self.enable = True
@@ -49,20 +53,61 @@ class wtOsc:
 
         self.wavetablepos = wavetablepos * 2048
         self.wavetablepos_min = 0
-        self.wavetablepos_max = 1 #for now wavetables need to be finished
+        self.wavetablepos_max = self.wave_tables_num - 1
         self.wavetablepos_step = 1
 
         self.volume = volume
         self.volume_min = 0
         self.volume_max = 1
-        self.volume_step = 0.01
 
 
 
+    def set_wavetable(self, wav=None):
+        if wav == None:
+            return
+
+        self.wave_tables = Synth.wavetable.parse_wavtab(wav)
+        self.wave_tables_num = len(self.wave_tables)/self.wavetsize
+
+    def gen_freq(self, note=None):
+        '''
+            This function takes the note and detune from an wtosc object and gives
+            the frequency
+
+                Args:
+                    note    list, containing two elements the string for the note, and the octave.
+                                Ex. ['A', 4] = A from the fourth octave
+                                Ex. ['FS', 5] = F sharp from the fifth octave
+
+                    osc     wtosc, Uses to grab the proper detune.
+
+                Returns:
+                    float, corresponding to the frequency
+        '''
+        if not note == None:
+            self.note = note
+
+        tunefreq = 440
+        a = 1.059463094359 # 2^(1/12)
+        notes = {"C":-9,"B":2,"D":-7,"E":-5,"F":-4,"G":-2,"A":0,"CS":-8,"DS":-6,"FS":-3,"GS":-1,"AS":1}
 
 
+        def _getfreq_(semitonediff):
+            freq = tunefreq * (pow(a, semitonediff))
+            return freq
 
-    def genOutput(self, freq=None):
+        def _getsemitonediff_f0_(note, octave):
+            semitonediff = (octave-5)*12
+            semitonediff = semitonediff + notes[note]
+            return semitonediff
+
+
+        semitonedif = _getsemitonediff_f0_(self.note[0], self.note[1]) + self.detune
+        freq = _getfreq_(semitonedif)
+        self.freq = freq
+
+
+    def genOutput(self):
         '''
             This function generates one audio sample
 
@@ -79,10 +124,10 @@ class wtOsc:
         #       fs is the sample frequency or sample rate
         if self.enable == False:
             return 0
-        if not freq:
+        if not self.freq:
             return 0
 
-        self.pInc = self.wavetsize * (freq / self.samplerate)
+        self.pInc = self.wavetsize * (self.freq / self.samplerate)
         self.phasor = self.phasor + self.pInc
 
         # Checks that adding the offset does not place the phase out of the window

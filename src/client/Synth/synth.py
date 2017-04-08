@@ -100,22 +100,24 @@ class synth:
         self.feed = list()
 
         # Open audio channel
-        self.aud = alsaaudio.PCM(mode=alsaaudio.PCM_NONBLOCK)
+        self.aud = alsaaudio.PCM()
         self.aud.setchannels(1)
         self.aud.setrate(self.samplerate)
         self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+        self.mixer = alsaaudio.Mixer()
+        self.mixer.setmute(0,0)
 
         # Load default wavetables
         self.wave_tables = Synth.wavetables.wavetable(wav='./Synth/Basic Shapes.wav')
         self.wave_tables2 = Synth.wavetables.wavetable(wav='./Synth/Basic Shapes.wav')
 
         # Load osc's
-        self.oscil = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=12, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
         self.oscil2 = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
-        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0,2,1,0)
-        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0,2,1,0)
+        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0,3,1,0.1)
+        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0,3,1,0.1)
 
         # Load Filter's
         self.fil1 = Synth.filt.filter()
@@ -124,9 +126,9 @@ class synth:
         self.fil1_past = [0,0]
 
         # Load LFO's
-        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='volume')
-        self.lfo2 = Synth.LFO.lfo(device=None, control=None)
-        self.lfo3 = Synth.LFO.lfo(device=None, control=None)
+        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='detune', speed=0.4, amount=1)
+        self.lfo2 = Synth.LFO.lfo(device=self.lfo1, control='offset', speed=1, amount=1)
+
 
         # The period size controls the internal number of frames per period.
         # The significance of this parameter is documented in the ALSA api.
@@ -172,7 +174,7 @@ class synth:
 
     def play(self, sequence, slide=False, ard_rec=False):
 
-        
+
         '''
             This function takes a squence and generates and plays the audio for that sequence.
 
@@ -190,8 +192,9 @@ class synth:
                 Returns:
                     None
         '''
-        self.oscil2.enabled = False
         totaltime = 0
+
+        self.oscil2.enable = False
 
         totalsamples = 0
         samples = []
@@ -204,8 +207,9 @@ class synth:
                 self.oscil.phasor = 0
                 self.oscil2.phasor = 0
 
-            freq1 = self.gen_freq(i[0], self.oscil)
-            freq2 = self.gen_freq(i[0], self.oscil2)
+            self.oscil.gen_freq(i[0])
+            self.oscil.gen_freq(i[0])
+
 
             count = 0
             while count < numsamples:
@@ -213,10 +217,11 @@ class synth:
 
                 # Run LFO's
                 self.lfo1.update_control(self.lfo1.device, self.lfo1.control)
+                self.lfo2.update_control(self.lfo2.device, self.lfo2.control)
 
                 # Run oscs
-                sig1 = self.oscil.genOutput(freq1)
-                sig2 = self.oscil2.genOutput(freq2)
+                sig1 = self.oscil.genOutput()
+                sig2 = self.oscil2.genOutput()
 
 
                 # Feed into envelope
@@ -235,8 +240,8 @@ class synth:
                 tot = (tot//math.sqrt(2))*self.volume
 
                 # Limits the feed, if tot > 100% volume clip it to 100%
-                if tot > 32768:
-                    tot = 32768
+                if tot > 32767:
+                    tot = 32767
                 elif tot < -32768:
                     tot = -32768
 

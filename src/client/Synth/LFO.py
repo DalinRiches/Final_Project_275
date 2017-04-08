@@ -10,18 +10,39 @@ class lfo:
     Don't use yet, one that works is in the synth to demonstate
     '''
 
-    def __init__(self, samplerate=44100, device=None, control=None, amount=0.75, wavetype='sin', speed=1):
+    def __init__(self, samplerate=44100, device=None, control=None, amount=0.1,offset=-0.5, wavetype='sin', speed=1):
         self.samplerate = samplerate
         self.device = device
         self.control = control
+
         self.speed = speed
+        self.speed_max = 50
+        self.speed_min = 0
+
+        self.amount = amount
+        self.amount_max = 1
+        self.amount_min = -1
+
+        self.offset = offset
+        self.offset_max = 1
+        self.offset_min = 0
+
         self.period = 2 * math.pi
         self.phase = 0
         self.set_speed(self.speed)
-        self.amount = amount
-        self.wavetype = wavetype
-        self.enabled = True
 
+        self.wavetype = wavetype
+
+        self.enabled = True
+        self.retrig = False
+
+    def set_device_control(self, device, control):
+        self.device = device
+        self.control = control
+
+    def set_phase(self):
+        if self.retrig == True:
+            self.phase = 0
 
     def set_speed(self, speed):
         '''
@@ -60,16 +81,23 @@ class lfo:
         if self.enabled == False:
             return
 
-        if control or device == None:
+        if control == None:
             return
 
         scale = self.genOutput()
-        print(scale)
+        if scale > 1:
+            scale = 1
+        elif scale < -1:
+            scale = -1
+
+
 
         if isinstance(device, wtOsc):
-            if control == 'wavtable position':
+            if control == 'wavtable position': #works
+                scale = (scale/2) + 0.5
                 delta = (device.wavetablepos_max*scale)
                 delta = delta - (delta%device.detune_step)
+                print(delta)
 
                 if device.wavetablepos > device.wavetablepos_max:
                     device.wavetablepos == device.wavetablepos_max
@@ -78,13 +106,13 @@ class lfo:
                     device.wavetablepos == device.wavetablepos_min
 
                 else:
-                    device.wavetablepos = device.wavetablepos_max + delta
+                    device.wavetablepos = delta
 
 
-            if control == 'detune':
-                delta = (device.detune_max*scale)
+            if control == 'detune': #
+                delta = device.detune_max*scale
                 delta = delta - (delta%device.detune_step)
-
+                print(delta)
                 if device.detune > device.detune_max:
                     device.detune == device.detune_max
 
@@ -92,78 +120,72 @@ class lfo:
                     device.detune == device.detune_min
 
                 else:
-                    device.detune = device.detune + delta
+                    device.detune = delta
 
-            if control == 'volume':
+                device.gen_freq()
+
+            if control == 'volume': #works
                 scale = (scale/2) + 0.5
                 device.volume = scale
 
 
+
         if isinstance(device, envelope):
-            if control == 'attack':
+            if control == 'attack': #works
+                scale = (scale/2) + 0.5
                 delta = (device.attack_max*scale)
-                time = device.attacksamples/device.samplerate
-                new_value = time + delta
 
-
-                if new_value > device.attack_max:
+                if delta > device.attack_max:
                     device.set_attack(device.attack_max)
 
-                if new_value < device.attack_min:
+                if delta < device.attack_min:
                     device.set_attack(device.attack_min)
 
-
                 else:
-                    device.set_attack(new_value)
+                    device.set_attack(delta)
 
-            if control == 'decay':
+            if control == 'decay': #works
+                scale = (scale/2) + 0.5
                 delta = (device.decay_max*scale)
-                time = device.decaysamples/device.samplerate
-                new_value = time + delta
 
-                if new_value > device.decay_max:
+
+                if delta > device.decay_max:
                     device.set_decay(device.decay_max)
 
-                if new_value < device.decay_min:
+                if delta < device.decay_min:
                     device.set_decay(device.decay_min)
 
-
                 else:
-                    device.set_decay(new_value)
+                    device.set_decay(delta)
 
-            if control == 'sustain':
+            if control == 'sustain': #works
+                scale = (scale/2) + 0.5
                 delta = (device.sustain_max*scale)
-                time = device.sustainsamples/device.samplerate
-                new_value = time + delta
 
 
-                if new_value > device.sustain_max:
+                if delta > device.sustain_max:
                     device.set_sustain(device.decay_max, device.sustain_amp)
 
-                if new_value < device.sustain_min:
+                if delta < device.sustain_min:
                     device.set_sustain(device.sustain_min, device.sustain_amp)
 
-
                 else:
-                    device.set_sustain(new_value, device.sustain_amp)
+                    device.set_sustain(delta, device.sustain_amp)
 
-            if control == 'release':
+            if control == 'release': #works
+                scale = (scale/2) + 0.5
                 delta = (device.release_max*scale)
-                time = device.releasesamples/device.samplerate
-                new_value = time + delta
 
-
-                if new_value > device.release_max:
+                if delta > device.release_max:
                     device.set_release(device.release_max)
 
-                if new_value < device.sustain_min:
+                if delta < device.sustain_min:
                     device.set_release(device.release_min)
 
-
                 else:
-                    device.set_release(new_value)
+                    device.set_release(delta)
 
-            if control == 'sustainamp':
+            if control == 'sustainamp': #works
                 scale = (scale/2) + 0.5
                 device.set_sustain(device.sustainsamples/device.samplerate, scale)
 
@@ -171,35 +193,76 @@ class lfo:
         if isinstance(device, Synth.filt.filter):
 
             if control == 'cutoff':
-                if device.filtertype == 'Low Pass':
+                if device.filtertype == 'Low Pass': #works
+                    scale = (scale/2) + 0.5
                     delta = (device.set_cutoff_lowpass_max*scale)
-                    old = device.cutoff_lp
-                    new_value = old + delta
 
-                    if new_value > device.set_cutoff_lowpass_max:
+
+                    if delta > device.set_cutoff_lowpass_max:
                         device.set_cutoff_lowpass(device.set_cutoff_lowpass_max)
 
-                    if new_value < device.set_cutoff_lowpass_min:
+                    if delta < device.set_cutoff_lowpass_min:
                         device.set_cutoff_lowpass(device.set_cutoff_lowpass_min)
 
 
                     else:
-                        device.set_cutoff_lowpass(new_value)
+                        device.set_cutoff_lowpass(delta)
 
-                if device.filtertype == 'High Pass':
+                    print(device.cutoff_lp)
+
+                if device.filtertype == 'High Pass': # Does not work
+                    scale = (scale/2) + 0.5
                     delta = (device.set_cutoff_highpass_max*scale)
-                    old = device.cutoff_hp
-                    new_value = old + delta
 
-                    if new_value > device.set_cutoff_highpass_max:
+
+                    if delta > device.set_cutoff_highpass_max:
                         device.set_cutoff_highpass(device.set_cutoff_highpass_max)
 
-                    if new_value < device.set_cutoff_highpass_max:
+                    if delta < device.set_cutoff_highpass_max:
                         device.set_cutoff_highpass(device.set_cutoff_highpass_min)
 
 
                     else:
-                        device.set_cutoff_highpass(new_value)
+                        device.set_cutoff_highpass(delta)
+
+                    print(device.cutoff_hp)
+        if isinstance(device, lfo):
+
+            if control == 'speed': # works
+                scale = (scale/2) + 0.5
+                delta = (device.speed_max*scale)
+
+                if delta > device.speed_max:
+                    device.set_speed(device.speed_max)
+
+                if delta < device.speed_min:
+                    device.set_speed(device.speed_min)
+
+                else:
+                    device.set_speed(delta)
+
+            if control == 'amount': #works
+                scale = (scale/2) + 0.5
+
+                if scale > device.amount_max:
+                    device.amount = device.speed_max
+
+                if scale < device.amount_min:
+                    device.amount = device.speed_min
+
+                else:
+                    device.amount = scale
+
+            if control == 'offset': #works
+
+                if scale > device.amount_max:
+                    device.offset = device.offset_max
+
+                if scale < device.offset_min:
+                    device.offset = device.offset_min
+
+                else:
+                    device.offset = scale
 
 
 
@@ -215,17 +278,17 @@ class lfo:
             self.phase = self.phase%self.period
 
         if self.wavetype == 'sin':
-            scale = math.sin(self.phase) * self.amount
+            scale = math.sin(self.phase) * self.amount + self.offset
             return scale
 
         elif self.wavetype == 'square':
             if phase <= math.pi:
-                scale = 0
+                scale = self.offset
             elif phase > math.pi:
-                scale = self.amount
+                scale = self.amount + self.offset
             return scale
 
 
         elif self.wavetype == 'saw':
-            scale = ((-1/math.pi)*self.phase + 1) * self.amount
+            scale = ((-1/math.pi)*self.phase + 1 + self.offset) * self.amount
             return scale
