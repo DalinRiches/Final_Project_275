@@ -5,7 +5,9 @@ import dialwidget
 import graphwidget
 
 PANEL_HEIGHT = 100
-PANEL_WIDTH = 120
+PANEL_WIDTH = 256
+PANEL_GS_HEIGHT = 64
+PANEL_GS_WIDTH = PANEL_WIDTH
 PANEL_FONT = "Fixed"
 
 class SynthPanel:
@@ -68,9 +70,12 @@ class SynthPanel:
         self.w_toggle.pack(side=LEFT)
         self.w_label.pack(side=LEFT, fill=BOTH, padx=5)
         
-        # graph screen (TODO)
+        # graph screen
         self.w_graph = graphwidget.GraphScreen(
-            parent=self.w_mid
+            parent=self.w_mid,
+            width=PANEL_GS_WIDTH,
+            height=PANEL_GS_HEIGHT,
+            fx=self._graph_fx
         )
         
         self.w_graph.pack(side=TOP)
@@ -100,6 +105,13 @@ class SynthPanel:
         should return a list of dictionaries, each one specifying
         the parameters of a Dial plus the identifier (as a string)
         of a target parameter that the dial should set. (see _add_dial) '''
+        pass
+    
+    
+    def _graph_fx(self, x):
+        ''' This is the function that will be displayed on the graph.
+        It should be overridden in each subclass by a function that
+        takes an integer and returns an integer. '''
         pass
     
     
@@ -174,6 +186,8 @@ class SynthPanel:
 class OscPanel(SynthPanel):
     ''' SynthPanel for an Oscillator component. '''
     
+    _label = "Oscillator"
+    
     def _dials(self):
         return [
             {'label': "Waveshape",
@@ -189,8 +203,15 @@ class OscPanel(SynthPanel):
              'dmin': -24, 'dmax': 24,
              'dmintext': "-24", 'dmaxtext': "+24",
              'dinitial': 0,
-             'target': 'detune'}
+             'target': 'detune' }
         ]
+    
+    
+    def _graph_fx(self, x):
+        wtx = (2048 * x) // PANEL_GS_WIDTH
+        wtval = (self.target.wave_tables[wtx] + 32768) % 65536
+        return PANEL_GS_HEIGHT * wtval // 65536
+    
     
     def _set_waveshape(self, value, label):
         # TODO still don't know how to set waveshapes.
@@ -204,9 +225,11 @@ class EnvPanel(SynthPanel):
     
     
     def _special_init(self):
-        self._val_atk = 0.1
-        self._val_dec = 0.2
-        self._val_rel = 0.2
+        self._val_atk = 0.07
+        self._val_dec = 0.08
+        self._val_sus_time = 0.15
+        self._val_sus_lvl = 0.8
+        self._val_rel = 0.1
     
     
     def _dials(self):
@@ -214,45 +237,65 @@ class EnvPanel(SynthPanel):
             {'label': "Attack",
              'dmin': 0, 'dmax': 2,
              'dinitial': self._val_atk,
-             'callback': self._set_adsr},
+             'callback': self._set_adr },
             {'label': "Decay",
              'dmin': 0, 'dmax': 2,
              'dinitial': self._val_dec,
-             'callback': self._set_adsr},
+             'callback': self._set_adr },
             {'label': "Sustain",
+             'dmin': 0, 'dmax': 2,
+             'dinitial': self._val_sus_time,
+             'callback': self._set_sustain },
+            {'label': "Sus. Level",
              'dmin': 0, 'dmax': 1,
              'dmintext': "0.0", 'dmaxtext': "1.0",
-             'dinitial': 0.8,
-             'callback': self._gen_sustain},
+             'dinitial': self._val_sus_lvl,
+             'callback': self._set_sustain },
             {'label': "Release",
              'dmin': 0, 'dmax': 2,
              'dinitial': self._val_rel,
-             'callback': self._set_adsr}
+             'callback': self._set_adr }
         ]
     
     
-    def _set_adsr(self, value, label):
+    def _graph_fx(self, x):
+        t = ((0.5 * x / PANEL_GS_WIDTH) * self.target.samplerate)
+        envval = self.target.gen_env(t, 1)
+        return int(envval * (PANEL_GS_HEIGHT - 4))
+    
+    
+    def _set_adr(self, value, label):
         if label == "Attack":
             self.target.set_attack(value)
-            self._val_atk = value
         elif label == "Decay":
             self.target.set_decay(value)
-            self._val_dec = value
         elif label == "Release":
             self.target.set_release(value)
-            self._val_rel = value
+        
+        self.w_graph.redraw()
     
     
-    def _gen_sustain(self, value):
-        # value is amplitude; determine time based
-        # on total note time
+    # def _gen_sustain(self, value):
+        # # value is amplitude; determine time based
+        # # on total note time
+        #
+        # time = max(0.0, (0.6 - self._val_atk - self._val_dec - self._val_rel))
+        # self.target.set_sustain(time, value)
+        # self.w_graph.redraw()
+        #
+        # #print("A {} | D {} | S {} | R {} || a {}".format(self._val_atk,
+        # #    self._val_dec, time, self._val_rel, value
+        # #))
+    
+    
+    def _set_sustain(self, value, label):
+        if label == "Sustain":
+            self._val_sus_time = value
+        elif label == "Sus. Level":
+            self._val_sus_lvl = value
         
-        time = max(0.0, (0.5 - self._val_atk - self._val_dec))
-        self.target.set_sustain(time, value)
-        
-        #print("A {} | D {} | S {} | R {} || a {}".format(self._val_atk,
-        #    self._val_dec, time, self._val_rel, value
-        #))
+        self.target.set_sustain(self._val_sus_time, self._val_sus_lvl)
+        self.w_graph.redraw()
 
 
 class FiltPanel(SynthPanel):
