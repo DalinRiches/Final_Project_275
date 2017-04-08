@@ -84,7 +84,7 @@ class _SeqStep:
         
         octave = (self.activeidx // 12) + 3
         note = _note_names[self.activeidx % 12]
-        return [[note, octave], 2]
+        return [[note, octave], 0.5]
 
 
 class Sequencer:

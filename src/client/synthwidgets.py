@@ -118,6 +118,8 @@ class Selector:
             self.callback(idx)
     
 
+# TODO could OscController and EnvController be turned into
+# subclasses of one ComponentController class?
 
 class OscController:
     def __init__(self, parent, oscillator, waveshape, volume, detune):
@@ -131,7 +133,7 @@ class OscController:
         # encapsulated widget
         self.widget = tkinter.Frame(parent, bd=1, relief=RAISED, pady=3,
             padx=3)
-        self.widget.pack(side=LEFT)
+        ### self.widget.pack(side=LEFT)
         
         
         # individual controls
@@ -170,7 +172,7 @@ class OscController:
         
         # bottom frame --> waveshape dial
         # TODO read number of waveshapes
-        self.w_waveshape = dialwidget.dialwidget(
+        self.w_waveshape = dialwidget.Dial(
             self.w_bot_frame,
             text="Waveshape",
             dmin=0,
@@ -181,7 +183,7 @@ class OscController:
         )
         
         # bottom frame --> volume dial
-        self.w_volume = dialwidget.dialwidget(
+        self.w_volume = dialwidget.Dial(
             self.w_bot_frame,
             text="Volume",
             dmin=0.0,
@@ -193,7 +195,7 @@ class OscController:
         )
         
         # bottom frame --> detune dial
-        self.w_detune = dialwidget.dialwidget(
+        self.w_detune = dialwidget.Dial(
             self.w_bot_frame,
             text="Detune",
             dmin=-24,
@@ -242,13 +244,132 @@ class OscController:
             self.oscillator.volume = self.volume
             self.oscillator.detune = self.detune
     
+    def pack(self, **kwargs):
+        self.widget.pack(**kwargs)
+    
 
 class EnvController:
     def __init__(self, parent, envelope, adsr):
-        pass
+        # regular data
+        self.parent = parent
+        self.envelope = envelope
+        self.adsr = adsr
+        self.enabled = False
+        
+        self.widget = tkinter.Frame(parent, bd=1, relief=RAISED, pady=3,
+            padx=3)
+        self.widget.pack(side=LEFT)
+        
+        
+        # individual controls
+        
+        # The top frame contains the label and toggle
+        self.w_top_frame = tkinter.Frame(self.widget, pady=5)
+        
+        # top frame --> label
+        self.w_label = tkinter.Label(
+            self.w_top_frame,
+            text="Envelope",
+            font="Fixed 8",
+            padx=5
+        )
+        
+        # top frame --> disable-completely toggle
+        self.w_toggle = tkinter.Button(
+            self.w_top_frame,
+            font="Fixed 9",
+            command=self.toggle_enabled
+        )
+        
+        # pack top frame
+        self.w_label.pack(side=RIGHT, expand=1)
+        self.w_toggle.pack(side=LEFT)
+        self.w_top_frame.pack(side=TOP)
+        
+        # Middle frame: form viewer
+        self.w_mid_frame = tkinter.Frame(self.widget)
+        
+        # middle frame --> graphview
+        self.w_waveview = graphwidget.GraphWidget()
+        
+        # Bottom frame: controls (ADSR)
+        self.w_bot_frame = tkinter.Frame(self.widget)
+        
+        # bottom frame --> attack time
+        self.w_atk = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Attack",
+            dmin=0,
+            dmax=2,
+            dinitial=0.2,
+            callback=self.set_atk
+        )
+        
+        # bottom frame --> decay time
+        self.w_dec = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Decay",
+            dmin=0,
+            dmax=2,
+            dinitial=0.4,
+            callback=self.set_dec
+        )
+        
+        # bottom frame --> sustain level
+        self.w_sus = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Sustain",
+            dmin=0.0,
+            dmax=1.0,
+            dinitial=0.0,
+            dmintext='0.0',
+            dmaxtext='1.0',
+            callback=self.set_sus
+        )
+        
+        # bottom frame --> release time
+        self.w_rel = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Release",
+            dmin=0,
+            dmax=2,
+            dinitial=0.05,
+            callback=self.set_rel
+        )
+        
+        self.w_atk.pack(side=LEFT)
+        self.w_sus.pack(side=LEFT)
+        self.w_dec.pack(side=LEFT)
+        self.w_rel.pack(side=LEFT)
+        self.w_bot_frame.pack(side=TOP)
+        
+        # starts FALSE, set TRUE
+        self.toggle_enabled()
+    
+    def toggle_enabled(self):
+        if self.enabled:
+            self.w_toggle.config(text="OFF", bg="red")
+        else:
+            self.w_toggle.config(text=" ON", bg="green")
+        self.enabled = not self.enabled
+    
+    
+    def set_atk(self, value):
+        self.adsr[0] = value
+    
+    def set_dec(self, value):
+        self.adsr[1] = value
+    
+    def set_sus(self, value):
+        self.adsr[2] = value
+    
+    def set_rel(self, value):
+        self.adsr[3] = value
     
     def pack(self, **kwargs):
-        pass
+        self.widget.pack(**kwargs)
     
     def apply(self):
-        pass
+        self.envelope.enabled = self.enabled
+        (self.envelope.attack, self.envelope.decay,
+            self.envelope.sustain, self.envelope.release) = self.adsr

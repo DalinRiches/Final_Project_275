@@ -97,15 +97,17 @@ def setup(synth):
     
     ctrl.bind_seq_generator(seq.sequence)
     
+    oscframe = tkinter.Frame()
+    
     osc1ct = synthwidgets.OscController(
-        parent=tk,
+        parent=oscframe,
         oscillator=synth.oscil,
         volume=0.75,
         waveshape=0,
         detune=0
     )
     osc2ct = synthwidgets.OscController(
-        parent=tk,
+        parent=oscframe,
         oscillator=synth.oscil2,
         volume=0.75,
         waveshape=0,
@@ -114,20 +116,28 @@ def setup(synth):
     
     ctrl.bind(osc1ct.apply)
     ctrl.bind(osc2ct.apply)
+    osc1ct.pack(side=LEFT)
+    osc2ct.pack(side=RIGHT)
+    oscframe.pack(side=TOP)
+    
+    envframe = tkinter.Frame()
     
     env1ct = synthwidgets.EnvController(
-        parent=tk,
+        parent=envframe,
         envelope=synth.env1,
         adsr=[0.1, 0.2, 0.9, 0.1]
     )
     env2ct = synthwidgets.EnvController(
-        parent=tk,
+        parent=envframe,
         envelope=synth.env2,
         adsr=[0.1, 0.2, 0.9, 0.1]
     )
     
     ctrl.bind(env1ct.apply)
     ctrl.bind(env2ct.apply)
+    env1ct.pack(side=LEFT)
+    env2ct.pack(side=RIGHT)
+    envframe.pack(side=TOP)
     
     ctrlbar = gen_controlbar(tk, ctrl)
     ctrlbar.pack(side=BOTTOM)
