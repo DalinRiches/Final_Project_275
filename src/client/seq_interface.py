@@ -11,16 +11,47 @@ import Synth
 
 
 
-
-
-def gen_controlbar(tk, synth, seq):
-    def _play_sequence():
-        print("Playing sequence")
-        sequence = seq.sequence()
-        print("Sequence is:\n{}".format(sequence))
-        synth.play(sequence)
-        print("Done")
+class PlaybackController:
+    ''' Contains a synth object and a list of callbacks.
+    When play() is called, all the callbacks are invoked
+    in the order they were bound before calling play on
+    the synth object. Used to apply changes from the
+    interface. '''
     
+    def __init__(self, synth):
+        self.synth = synth
+        self.callbacks = []
+        self.seq_callback = None
+        self.seq = None
+    
+    
+    def bind(self, fn):
+        self.callbacks.append(fn)
+    
+    
+    def bind_seq_generator(self, fn):
+        self.seq_callback = fn
+    
+    
+    def get_sequence(self):
+        print("Getting sequence...")
+        seq = self.seq_callback()
+        print(seq)
+        return seq
+    
+    
+    def play(self):
+        for fn in self.callbacks:
+            fn()
+        
+        seq = self.get_sequence()
+        print("Playing...")
+        self.synth.play(seq)
+        print("Done")
+        
+    
+
+def gen_controlbar(tk, ctrl):
     bar = tkinter.Frame(
         tk,
         bd=2,
@@ -31,7 +62,7 @@ def gen_controlbar(tk, synth, seq):
         bar,
         bg="green",
         text="Play",
-        command=_play_sequence
+        command=ctrl.play
     )
     bar_play.pack(side=LEFT)
     
@@ -52,48 +83,71 @@ def gen_controlbar(tk, synth, seq):
 def setup(synth):
     ''' Sets up the interface and returns a reference to
     the base Tk widget. '''
-
+    
+    ctrl = PlaybackController(synth)
+    
     tk = tkinter.Tk()
-
-    # main sequence bar
-    # mainseq = synthwidgets.Selector(
-    #     parent=tk,
-    #     elements=["{:02d}".format(i) for i in range(16)],
-    #     callback=set_step
-    # )
-    # mainseq.pack(side=BOTTOM)
-
+    
     seq = seqwidget.Sequencer(
         parent=tk,
         length=32,
         height=24
     )
     seq.pack(side=BOTTOM)
-
+    
+    ctrl.bind_seq_generator(seq.sequence)
+    
+    oscframe = tkinter.Frame()
+    
     osc1ct = synthwidgets.OscController(
-        parent=tk,
+        parent=oscframe,
         oscillator=synth.oscil,
         volume=0.75,
-        offset=0,
+        waveshape=0,
         detune=0
     )
     osc2ct = synthwidgets.OscController(
-        parent=tk,
+        parent=oscframe,
         oscillator=synth.oscil2,
         volume=0.75,
-        offset=0,
+        waveshape=0,
         detune=0
     )
-
-    ctrlbar = gen_controlbar(tk, synth, seq)
+    
+    ctrl.bind(osc1ct.apply)
+    ctrl.bind(osc2ct.apply)
+    osc1ct.pack(side=LEFT)
+    osc2ct.pack(side=RIGHT)
+    oscframe.pack(side=TOP)
+    
+    envframe = tkinter.Frame()
+    
+    env1ct = synthwidgets.EnvController(
+        parent=envframe,
+        envelope=synth.env1,
+        adsr=[0.1, 0.2, 0.9, 0.1]
+    )
+    env2ct = synthwidgets.EnvController(
+        parent=envframe,
+        envelope=synth.env2,
+        adsr=[0.1, 0.2, 0.9, 0.1]
+    )
+    
+    ctrl.bind(env1ct.apply)
+    ctrl.bind(env2ct.apply)
+    env1ct.pack(side=LEFT)
+    env2ct.pack(side=RIGHT)
+    envframe.pack(side=TOP)
+    
+    ctrlbar = gen_controlbar(tk, ctrl)
     ctrlbar.pack(side=BOTTOM)
-
+    
     return tk
 
 
 if __name__ == '__main__':
     synthesizer = Synth.synth()
-
+    
     tk = setup(synthesizer)
-
+    
     tk.mainloop()

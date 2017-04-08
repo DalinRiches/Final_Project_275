@@ -2,6 +2,7 @@ import tkinter
 from tkinter.constants import *
 
 import dialwidget
+import graphwidget
 
 ''' Synthesizer controller widgets:
         Selector - radio button bar
@@ -117,12 +118,14 @@ class Selector:
             self.callback(idx)
     
 
+# TODO could OscController and EnvController be turned into
+# subclasses of one ComponentController class?
 
 class OscController:
-    def __init__(self, parent, oscillator, volume, offset, detune):
+    def __init__(self, parent, oscillator, waveshape, volume, detune):
         # regular data
+        self.waveshape = waveshape
         self.volume = volume
-        self.offset = offset
         self.detune = detune
         self.enabled = False
         self.oscillator = oscillator
@@ -130,25 +133,13 @@ class OscController:
         # encapsulated widget
         self.widget = tkinter.Frame(parent, bd=1, relief=RAISED, pady=3,
             padx=3)
-        self.widget.pack(side=LEFT)
+        ### self.widget.pack(side=LEFT)
         
         
         # individual controls
         
-        # The top frame controls the volume
+        # The top frame contains the label and toggle
         self.w_top_frame = tkinter.Frame(self.widget, pady=5)
-        
-        # top frame --> volume dial
-        self.w_amplitude = dialwidget.dialwidget(
-            self.w_top_frame,
-            text="Volume",
-            dmin=0.0,
-            dmax=1.0,
-            dinitial=1.0,
-            dmintext='0%',
-            dmaxtext='100%',
-            callback=self.set_volume
-        )
         
         # top frame --> label
         self.w_label = tkinter.Label(
@@ -166,31 +157,45 @@ class OscController:
         )
         
         # pack top frame
-        self.w_amplitude.pack(side=RIGHT)
         self.w_label.pack(side=RIGHT, expand=1)
         self.w_toggle.pack(side=LEFT)
         self.w_top_frame.pack(side=TOP)
         
         # Middle frame: waveshape selector
+        self.w_mid_frame = tkinter.Frame(self.widget)
         
-        # Bottom frame: detune and octave offset controls
+        # bottom frame --> graphview
+        self.w_waveview = graphwidget.GraphWidget()
+        
+        # Bottom frame: controls (waveshape, volume, detune)
         self.w_bot_frame = tkinter.Frame(self.widget)
         
-        # bottom frame --> octave offset dial
-        self.w_octave = dialwidget.dialwidget(
+        # bottom frame --> waveshape dial
+        # TODO read number of waveshapes
+        self.w_waveshape = dialwidget.Dial(
             self.w_bot_frame,
-            text="Octave",
-            dmin=-4,
-            dmax=4,
+            text="Waveshape",
+            dmin=0,
+            dmax=16,
             dinitial=0,
             dincrement=1,
-            dmintext='-4',
-            dmaxtext='+4',
-            callback=self.set_offset
+            callback=self.set_waveshape
+        )
+        
+        # bottom frame --> volume dial
+        self.w_volume = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Volume",
+            dmin=0.0,
+            dmax=1.0,
+            dinitial=1.0,
+            dmintext='0%',
+            dmaxtext='100%',
+            callback=self.set_volume
         )
         
         # bottom frame --> detune dial
-        self.w_detune = dialwidget.dialwidget(
+        self.w_detune = dialwidget.Dial(
             self.w_bot_frame,
             text="Detune",
             dmin=-24,
@@ -200,7 +205,8 @@ class OscController:
             dmaxtext='+24',
             callback=self.set_detune
         )
-        self.w_octave.pack(side=LEFT)
+        self.w_waveshape.pack(side=LEFT)
+        self.w_volume.pack(side=LEFT)
         self.w_detune.pack(side=LEFT)
         self.w_bot_frame.pack(side=TOP)
         
@@ -216,9 +222,9 @@ class OscController:
         self.enabled = not self.enabled
     
     
-    def set_offset(self, value):
+    def set_waveshape(self, value):
         # (correcting for float error)
-        self.offset = int(value+0.001)
+        self.waveshape = int(value+0.001)
     
     
     def set_detune(self, value):
@@ -234,7 +240,136 @@ class OscController:
         if not self.enabled:
             self.oscillator.volume = 0.0
         else:
-            # (Octave offset is applied at generation time.)
+            # TODO set waveshape
             self.oscillator.volume = self.volume
             self.oscillator.detune = self.detune
     
+    def pack(self, **kwargs):
+        self.widget.pack(**kwargs)
+    
+
+class EnvController:
+    def __init__(self, parent, envelope, adsr):
+        # regular data
+        self.parent = parent
+        self.envelope = envelope
+        self.adsr = adsr
+        self.enabled = False
+        
+        self.widget = tkinter.Frame(parent, bd=1, relief=RAISED, pady=3,
+            padx=3)
+        self.widget.pack(side=LEFT)
+        
+        
+        # individual controls
+        
+        # The top frame contains the label and toggle
+        self.w_top_frame = tkinter.Frame(self.widget, pady=5)
+        
+        # top frame --> label
+        self.w_label = tkinter.Label(
+            self.w_top_frame,
+            text="Envelope",
+            font="Fixed 8",
+            padx=5
+        )
+        
+        # top frame --> disable-completely toggle
+        self.w_toggle = tkinter.Button(
+            self.w_top_frame,
+            font="Fixed 9",
+            command=self.toggle_enabled
+        )
+        
+        # pack top frame
+        self.w_label.pack(side=RIGHT, expand=1)
+        self.w_toggle.pack(side=LEFT)
+        self.w_top_frame.pack(side=TOP)
+        
+        # Middle frame: form viewer
+        self.w_mid_frame = tkinter.Frame(self.widget)
+        
+        # middle frame --> graphview
+        self.w_waveview = graphwidget.GraphWidget()
+        
+        # Bottom frame: controls (ADSR)
+        self.w_bot_frame = tkinter.Frame(self.widget)
+        
+        # bottom frame --> attack time
+        self.w_atk = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Attack",
+            dmin=0,
+            dmax=2,
+            dinitial=0.2,
+            callback=self.set_atk
+        )
+        
+        # bottom frame --> decay time
+        self.w_dec = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Decay",
+            dmin=0,
+            dmax=2,
+            dinitial=0.4,
+            callback=self.set_dec
+        )
+        
+        # bottom frame --> sustain level
+        self.w_sus = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Sustain",
+            dmin=0.0,
+            dmax=1.0,
+            dinitial=0.0,
+            dmintext='0.0',
+            dmaxtext='1.0',
+            callback=self.set_sus
+        )
+        
+        # bottom frame --> release time
+        self.w_rel = dialwidget.Dial(
+            self.w_bot_frame,
+            text="Release",
+            dmin=0,
+            dmax=2,
+            dinitial=0.05,
+            callback=self.set_rel
+        )
+        
+        self.w_atk.pack(side=LEFT)
+        self.w_sus.pack(side=LEFT)
+        self.w_dec.pack(side=LEFT)
+        self.w_rel.pack(side=LEFT)
+        self.w_bot_frame.pack(side=TOP)
+        
+        # starts FALSE, set TRUE
+        self.toggle_enabled()
+    
+    def toggle_enabled(self):
+        if self.enabled:
+            self.w_toggle.config(text="OFF", bg="red")
+        else:
+            self.w_toggle.config(text=" ON", bg="green")
+        self.enabled = not self.enabled
+    
+    
+    def set_atk(self, value):
+        self.adsr[0] = value
+    
+    def set_dec(self, value):
+        self.adsr[1] = value
+    
+    def set_sus(self, value):
+        self.adsr[2] = value
+    
+    def set_rel(self, value):
+        self.adsr[3] = value
+    
+    def pack(self, **kwargs):
+        self.widget.pack(**kwargs)
+    
+    def apply(self):
+        self.envelope.enabled = self.enabled
+        (self.envelope.attack, self.envelope.decay,
+            self.envelope.sustain, self.envelope.release) = self.adsr

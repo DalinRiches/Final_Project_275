@@ -1,11 +1,35 @@
 import tkinter
 from tkinter.constants import *
 
-# TODO document this properly
 
-class dialwidget:
-    def __init__(self, parent, dmin, dmax, dinitial,
-            text, callback, dmintext=None, dmaxtext=None, dincrement=None):
+class Dial:
+    ''' A visual dial for entering numerical values. Can be rotated
+    by clicking and dragging and reset by double-clicking.
+    
+    Parameters:
+        parent: (Widget) tk-style parent widget.
+        dmin: (float) minimum value the dial can be set to.
+        dmax: (float) maximum value the dial can be set to.
+        dinitial: (float) default value for the dial. It will be
+            instantiated with this value and will return to it
+            when double-clicked.
+        text: (str) label for the dial.
+        callback: (function) function to be called when the dial
+            setting is changed. Will be passed the new value.
+        dmintext: (str) (optional) label for the minimum value.
+            If unset defaults to the string representation of
+            the actual minimum value.
+        dmaxtext: (str) (optional) label for the maximum value.
+            If unset defaults to the string representation of
+            the actual maximum value.
+        dincrement: (float) (optional) step increment. If set,
+            the dial will snap to the closest multiple of this
+            value when turned. Note that floating point error
+            may cause multiples to be somewhat inexact, which
+            may be problematic in certain situations.
+    '''
+    def __init__(self, parent, dmin, dmax, dinitial, text, callback,
+                 dmintext=None, dmaxtext=None, dincrement=None):
         # Basic parameters: minimum, maximum, initial values
         self.dmin = dmin
         self.dmax = dmax
@@ -62,7 +86,17 @@ class dialwidget:
         # Dial body
         self.wd_circle = self.widget.create_oval(
             25-15, 30-15, 25+15, 30+15, outline="white", fill="white",
-            stipple="gray25")
+            stipple="gray25"
+        )
+        # Current value box
+        self.wd_valbox = self.widget.create_rectangle(
+            25-9, 30+15+3-5, 25+8, 30+15+3+3, outline="white", fill="black"
+        )
+        # Current value label
+        self.wd_vallabel = self.widget.create_text(
+            25, 30+15+3, justify="center", fill="white", font="Fixed 4",
+            text="###"
+        )
         # Dial body events: click/move/release to change,
         # double-click to reset
         self.widget.bind('<Button-1>', self.mouse_down)
