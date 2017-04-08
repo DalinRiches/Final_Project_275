@@ -2,6 +2,7 @@ import tkinter
 from tkinter.constants import *
 
 import dialwidget
+import graphwidget
 
 ''' Synthesizer controller widgets:
         Selector - radio button bar
@@ -119,10 +120,10 @@ class Selector:
 
 
 class OscController:
-    def __init__(self, parent, oscillator, volume, offset, detune):
+    def __init__(self, parent, oscillator, waveshape, volume, detune):
         # regular data
+        self.waveshape = waveshape
         self.volume = volume
-        self.offset = offset
         self.detune = detune
         self.enabled = False
         self.oscillator = oscillator
@@ -135,20 +136,8 @@ class OscController:
         
         # individual controls
         
-        # The top frame controls the volume
+        # The top frame contains the label and toggle
         self.w_top_frame = tkinter.Frame(self.widget, pady=5)
-        
-        # top frame --> volume dial
-        self.w_amplitude = dialwidget.dialwidget(
-            self.w_top_frame,
-            text="Volume",
-            dmin=0.0,
-            dmax=1.0,
-            dinitial=1.0,
-            dmintext='0%',
-            dmaxtext='100%',
-            callback=self.set_volume
-        )
         
         # top frame --> label
         self.w_label = tkinter.Label(
@@ -166,27 +155,41 @@ class OscController:
         )
         
         # pack top frame
-        self.w_amplitude.pack(side=RIGHT)
         self.w_label.pack(side=RIGHT, expand=1)
         self.w_toggle.pack(side=LEFT)
         self.w_top_frame.pack(side=TOP)
         
         # Middle frame: waveshape selector
+        self.w_mid_frame = tkinter.Frame(self.widget)
         
-        # Bottom frame: detune and octave offset controls
+        # bottom frame --> graphview
+        self.w_waveview = graphwidget.GraphWidget()
+        
+        # Bottom frame: controls (waveshape, volume, detune)
         self.w_bot_frame = tkinter.Frame(self.widget)
         
-        # bottom frame --> octave offset dial
-        self.w_octave = dialwidget.dialwidget(
+        # bottom frame --> waveshape dial
+        # TODO read number of waveshapes
+        self.w_waveshape = dialwidget.dialwidget(
             self.w_bot_frame,
-            text="Octave",
-            dmin=-4,
-            dmax=4,
+            text="Waveshape",
+            dmin=0,
+            dmax=16,
             dinitial=0,
             dincrement=1,
-            dmintext='-4',
-            dmaxtext='+4',
-            callback=self.set_offset
+            callback=self.set_waveshape
+        )
+        
+        # bottom frame --> volume dial
+        self.w_volume = dialwidget.dialwidget(
+            self.w_bot_frame,
+            text="Volume",
+            dmin=0.0,
+            dmax=1.0,
+            dinitial=1.0,
+            dmintext='0%',
+            dmaxtext='100%',
+            callback=self.set_volume
         )
         
         # bottom frame --> detune dial
@@ -200,7 +203,8 @@ class OscController:
             dmaxtext='+24',
             callback=self.set_detune
         )
-        self.w_octave.pack(side=LEFT)
+        self.w_waveshape.pack(side=LEFT)
+        self.w_volume.pack(side=LEFT)
         self.w_detune.pack(side=LEFT)
         self.w_bot_frame.pack(side=TOP)
         
@@ -216,9 +220,9 @@ class OscController:
         self.enabled = not self.enabled
     
     
-    def set_offset(self, value):
+    def set_waveshape(self, value):
         # (correcting for float error)
-        self.offset = int(value+0.001)
+        self.waveshape = int(value+0.001)
     
     
     def set_detune(self, value):
@@ -234,7 +238,17 @@ class OscController:
         if not self.enabled:
             self.oscillator.volume = 0.0
         else:
-            # (Octave offset is applied at generation time.)
+            # TODO set waveshape
             self.oscillator.volume = self.volume
             self.oscillator.detune = self.detune
     
+
+class EnvController:
+    def __init__(self, parent, envelope, adsr):
+        pass
+    
+    def pack(self, **kwargs):
+        pass
+    
+    def apply(self):
+        pass
