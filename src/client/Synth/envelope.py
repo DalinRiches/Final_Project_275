@@ -28,6 +28,26 @@ class envelope:
         self.releasesamples = release * samplerate
         self.samplerate = samplerate
 
+        # Used by LFO
+        self.set_attack_min = 0
+        self.set_attack_max = 5
+
+        self.decay_min = 0
+        self.decay_max = 5
+
+        self.sustain_min = 0
+        self.sustain_min_max = 5
+
+        self.sustain_amp_min = 0
+        self.sustain_amp_max = 1
+        self.suatian_amp_step = 0.01
+
+        self.release_min = 0
+        self.release_max = 5
+
+
+
+
     def set_attack(self, time):
         self.attacksamples = time * self.samplerate
 

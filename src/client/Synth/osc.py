@@ -29,16 +29,37 @@ class wtOsc:
     '''
 
     def __init__(self, phasor=0, pOffset=0.5, wave_tables=None, samplerate=44100, detune=0, wavetablepos=0, volume=1):
-        self.enable = True
+        self.wavetsize = 2048
+        self.wave_tables = wave_tables
+        self.samplerate = samplerate
         self.phasor = phasor
         self.pInc = 0
+        self.enable = True
+
+        # min max and step used by the LFO
         self.pOffset = pOffset
-        self.wave_tables = wave_tables
-        self.wavetsize = 2048
-        self.samplerate = samplerate
+        self.pOffset_max = self.wavetsize
+        self.pOffest_min = 0
+        self.pOffest_step = 1
+
         self.detune = detune
+        self.detune_max = 24
+        self.detune_min = -24
+        self.detune_step = 1
+
         self.wavetablepos = wavetablepos * 2048
+        self.wavetablepos_min = 0
+        self.wavetablepos_max = 1 #for now wavetables need to be finished
+        self.wavetablepos_step = 1
+
         self.volume = volume
+        self.volume_min = 0
+        self.volume_max = 1
+        self.volume_step = 0.01
+
+
+
+
 
 
     def genOutput(self, freq=None):
