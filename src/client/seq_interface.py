@@ -3,7 +3,7 @@ import tkinter
 from tkinter.constants import *
 
 # Custom widget-like definitions
-import synthwidgets
+import synthwidget
 import seqwidget
 
 # Synthesizer
@@ -84,6 +84,9 @@ def setup(synth):
     ''' Sets up the interface and returns a reference to
     the base Tk widget. '''
     
+    # TODO: This would probably look better with the grid()
+    # geometry manager if I can figure out how to do that...
+    
     ctrl = PlaybackController(synth)
     
     tk = tkinter.Tk()
@@ -99,45 +102,68 @@ def setup(synth):
     
     oscframe = tkinter.Frame()
     
-    osc1ct = synthwidgets.OscController(
+    # osc1ct = synthwidgets.OscController(
+    #     parent=oscframe,
+    #     oscillator=synth.oscil,
+    #     volume=0.75,
+    #     waveshape=0,
+    #     detune=0
+    # )
+    # osc2ct = synthwidgets.OscController(
+    #     parent=oscframe,
+    #     oscillator=synth.oscil2,
+    #     volume=0.75,
+    #     waveshape=0,
+    #     detune=0
+    # )
+    
+    osc1ct = synthwidget.OscPanel(
         parent=oscframe,
-        oscillator=synth.oscil,
-        volume=0.75,
-        waveshape=0,
-        detune=0
+        target=synth.oscil
     )
-    osc2ct = synthwidgets.OscController(
+    osc2ct = synthwidget.OscPanel(
         parent=oscframe,
-        oscillator=synth.oscil2,
-        volume=0.75,
-        waveshape=0,
-        detune=0
+        target=synth.oscil2
     )
     
-    ctrl.bind(osc1ct.apply)
-    ctrl.bind(osc2ct.apply)
-    osc1ct.pack(side=LEFT)
-    osc2ct.pack(side=RIGHT)
-    oscframe.pack(side=TOP)
+    # ctrl.bind(osc1ct.apply)
+    # ctrl.bind(osc2ct.apply)
+    osc1ct.pack(side=LEFT, fill=X)
+    osc2ct.pack(side=LEFT, fill=X)
+    oscframe.pack(side=TOP, fill=X)
     
     envframe = tkinter.Frame()
     
-    env1ct = synthwidgets.EnvController(
+    # env1ct = synthwidgets.EnvController(
+    #     parent=envframe,
+    #     envelope=synth.env1,
+    #     adsr=[0.1, 0.2, 0.9, 0.1]
+    # )
+    # env2ct = synthwidgets.EnvController(
+    #     parent=envframe,
+    #     envelope=synth.env2,
+    #     adsr=[0.1, 0.2, 0.9, 0.1]
+    # )
+    env1ct = synthwidget.EnvPanel(
         parent=envframe,
-        envelope=synth.env1,
-        adsr=[0.1, 0.2, 0.9, 0.1]
+        target=synth.env1
     )
-    env2ct = synthwidgets.EnvController(
+    env2ct = synthwidget.EnvPanel(
         parent=envframe,
-        envelope=synth.env2,
-        adsr=[0.1, 0.2, 0.9, 0.1]
+        target=synth.env2
     )
     
-    ctrl.bind(env1ct.apply)
-    ctrl.bind(env2ct.apply)
-    env1ct.pack(side=LEFT)
-    env2ct.pack(side=RIGHT)
-    envframe.pack(side=TOP)
+    # panelframe.grid()
+    # osc1ct.grid(column=0, row=0)
+    # osc2ct.grid(column=1, row=0)
+    # env1ct.grid(column=0, row=1)
+    # env2ct.grid(column=1, row=1)
+    
+    # ctrl.bind(env1ct.apply)
+    # ctrl.bind(env2ct.apply)
+    env1ct.pack(side=LEFT, fill=X)
+    env2ct.pack(side=LEFT, fill=X)
+    envframe.pack(side=TOP, fill=X)
     
     ctrlbar = gen_controlbar(tk, ctrl)
     ctrlbar.pack(side=BOTTOM)
