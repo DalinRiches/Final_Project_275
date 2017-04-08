@@ -1,5 +1,6 @@
 import numpy as np
 import serial
+import Synth.LFO
 import Synth.osc
 import Synth.wavetables
 import alsaaudio
@@ -67,6 +68,13 @@ class synth:
                     To set as a lowpass filter or change the cutoff of a existing lowpass:
                         synth_class_object.<filter>.set_cutoff_lowpass(cutoff)
 
+                    Enable (bool):
+                        synth_class_object.<filter>.enable
+
+                Low Frequency Oscillator's:
+
+
+
 
                 Changing wavetables is not supported yet.
 
@@ -106,14 +114,19 @@ class synth:
         self.oscil2 = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
-        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
-        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0.5,0.5,0.7,0.5)
+        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0,2,1,0)
+        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0,2,1,0)
 
         # Load Filter's
         self.fil1 = Synth.filt.filter()
         self.fil2 = Synth.filt.filter()
         self.mix_past = [0,0]
         self.fil1_past = [0,0]
+
+        # Load LFO's
+        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='volume')
+        self.lfo2 = Synth.LFO.lfo(device=None, control=None)
+        self.lfo3 = Synth.LFO.lfo(device=None, control=None)
 
         # The period size controls the internal number of frames per period.
         # The significance of this parameter is documented in the ALSA api.
@@ -158,6 +171,8 @@ class synth:
 
 
     def play(self, sequence, slide=False, ard_rec=False):
+
+        
         '''
             This function takes a squence and generates and plays the audio for that sequence.
 
@@ -175,7 +190,7 @@ class synth:
                 Returns:
                     None
         '''
-
+        self.oscil2.enabled = False
         totaltime = 0
 
         totalsamples = 0
@@ -195,6 +210,9 @@ class synth:
             count = 0
             while count < numsamples:
                 # This is the order the synth will run
+
+                # Run LFO's
+                self.lfo1.update_control(self.lfo1.device, self.lfo1.control)
 
                 # Run oscs
                 sig1 = self.oscil.genOutput(freq1)

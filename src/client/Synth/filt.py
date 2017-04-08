@@ -6,8 +6,20 @@ class filter:
         self.samplerate = samplerate
         self.filtertype = 'Low Pass'
         self.past_output = 0
+        self.enable = True
+
+        # min max and step used by LFO
         self.set_cutoff_highpass(100)
+        self.set_cutoff_highpass_max = 20000
+        self.set_cutoff_highpass_min = 1 #can't be zero
+        self.set_cutoff_highpass_step = 1
+
         self.set_cutoff_lowpass(10000)
+        self.set_cutoff_lowpass_max = 20000
+        self.set_cutoff_lowpass_min = 1 #can't be zero
+        self.set_cutoff_lowpass_step = 1
+
+
 
     def set_cutoff_highpass(self, cutoff):
         self.cutoff_hp = cutoff
@@ -22,6 +34,9 @@ class filter:
 
 
     def generate_output(self, inp):
+        if self.enable == False:
+            return inp
+
         if self.filtertype == 'High Pass':
             output = (self.alpha_hp * (self.past_output + inp[0] - inp[1]))
             self.past_output = output
