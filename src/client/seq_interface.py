@@ -5,12 +5,15 @@ from tkinter.constants import *
 # Custom widget-like definitions
 import synthwidget
 import seqwidget
+import newseqwidget
 
 # Synthesizer
 import Synth
 
 
 
+# TODO this isn't really useful anymore.
+# should probably be redesigned.
 class PlaybackController:
     ''' Contains a synth object and a list of callbacks.
     When play() is called, all the callbacks are invoked
@@ -69,32 +72,20 @@ def gen_controlbar(tk, ctrl):
     return bar
 
 
-# ''' The current step of the sequence. '''
-# current_step = 0
-#
-#
-# def set_step(idx):
-#     ''' Sets the current step of the sequence to show in the
-#     oscillator interface. '''
-#
-#     print("Displaying step {}".format(idx))
-#     current_step = idx
-
 def setup(synth):
     ''' Sets up the interface and returns a reference to
     the base Tk widget. '''
-    
-    # TODO: This would probably look better with the grid()
-    # geometry manager if I can figure out how to do that...
     
     ctrl = PlaybackController(synth)
     
     tk = tkinter.Tk()
     
-    seq = seqwidget.Sequencer(
+    seq = newseqwidget.Sequencer(
         parent=tk,
         length=32,
-        height=24
+        height=24,
+        firstnoteidx=3*12-1, # (index of C3)
+        temposource=lambda: 0.5
     )
     seq.pack(side=BOTTOM)
     

@@ -57,36 +57,11 @@ class envelope:
 
     def set_sustain(self, time, amp):
         self.sustain_amp = amp
-        self.sustainsamples = time * self.samplerate
 
     def set_release(self, time):
         self.releasesamples = time * self.samplerate
 
-    def get_releases(self, osc):
-        old_phasor = osc.phasor
-        old_freq = osc.freq
-        len_releases = len(self.releases)
-        if len_releases <= 0:
-            return 0
-        tot = 0
-        for i in self.releases:
-            osc.freq = i[0]
-            osc.phase = i[1]
-            curr = i[2]
-            totsamp = i[3]
-            sus_amp = i[4]
-
-            val = osc.genOutput()
-            tot += ((-sus_amp/totsamp)*curr + sus_amp)*val
-            i[2] += 1
-
-
-        osc.phasor = old_phasor
-        osc.freq = old_freq
-        output = [tot,len_releases]
-        return output
-
-    def gen_env_graph(self, curr_sample, inp):
+    def gen_env(self, curr_sample, inp):
         '''
         This function outputs the scaling factor based on the current sample
             Args:
@@ -112,7 +87,7 @@ class envelope:
         else:
             return 0
 
-    def gen_env(self, curr_sample, totsample, inp, freq, phase):
+    def gen_env_k(self, curr_sample, totsample, inp, freq, phase):
         '''
         This function outputs the scaling factor based on the current sample
 
@@ -137,5 +112,6 @@ class envelope:
         elif curr_sample == (totsample-1):
             if freq == 0:
                 return 0
-
-            self.releases.append([freq, phase, 0, self.releasesamples, self.sustain_amp])
+            else:
+                self.releases.append([freq, phase, 0, self.releasesamples, self.sustain_amp])
+                return 0

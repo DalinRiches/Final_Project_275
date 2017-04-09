@@ -104,7 +104,7 @@ class wtOsc:
 
         semitonedif = _getsemitonediff_f0_(self.note[0], self.note[1]) + self.detune
         freq = _getfreq_(semitonedif)
-        self.freq = freq
+        return freq
 
 
     def genOutput(self):
@@ -123,8 +123,6 @@ class wtOsc:
         #       f is the frequency we want to generate
         #       fs is the sample frequency or sample rate
         if self.enable == False:
-            return 0
-        if not self.freq:
             return 0
 
         self.pInc = self.wavetsize * (self.freq / self.samplerate)

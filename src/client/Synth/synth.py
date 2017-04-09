@@ -8,6 +8,7 @@ import math
 import time
 import Synth.envelope
 import Synth.filt
+import Synth.voice
 
 
 class synth:
@@ -136,8 +137,14 @@ class synth:
         self.oscil2 = Synth.osc.wtOsc(wav='./Synth/Basic Shapes.wav', volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
-        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0,0.5,1,2)
-        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0,0.5,1,2)
+        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,2,1,0.5,2)
+        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,2,1,0.5,2)
+
+        # Load voices
+        self.voices = []
+        for i in range(0,8):
+            x = Synth.voice.voice(self.oscil, self.oscil2, self.env1, self.env2)
+            self.voices.append(x)
 
         # Load Filter's
         self.fil1 = Synth.filt.filter()
@@ -202,7 +209,8 @@ class synth:
                     slide=False     bool, if True don't reset osc's phasor after each note
                                     if False, reset the phasor after each note
 
-                    ard_rec=False   bool, if True record and upload to arduino
+                    ard_rec=False   bool, if True record and upload to arduino            return ((-self.sustain_amp/self.releasesamples)*sample + self.sustain_amp) * inp
+
                                     if, False record and play through speakers
 
                 Returns:
@@ -217,20 +225,18 @@ class synth:
         self.env2.releases = []
 
         for i in sequence:
-            numsamples = i[1] * self.samplerate
-            totalsamples += math.floor(numsamples)
+            note = i[0]
+            time = i[1]
             notesamp = []
             if not slide:
                 self.oscil.phasor = 0
                 self.oscil2.phasor = 0
-
-            if not i[0][0] == 0:
-                self.oscil.gen_freq(i[0])
-                self.oscil.gen_freq(i[0])
-
-            else:
-                self.oscil.freq = 0
-                self.oscil2.freq = 0
+            for j in self.voices:
+                if j.in_use == False:
+                    j.load_note(note, time)
+                    numsamples = time * self.samplerate
+                    totalsamples += numsamples
+                    break
 
 
             count = 0
@@ -242,46 +248,20 @@ class synth:
                 self.lfo2.update_control(self.lfo2.device, self.lfo2.control)
                 self.lfo3.update_control(self.lfo3.device, self.lfo3.control)
 
-                # Run oscs
-                sig1 = self.oscil.genOutput()
-                sig2 = self.oscil2.genOutput()
-
-
-                # Feed into envelope
-                sig1 = self.env1.gen_env(count, sig1, numsamples, self.oscil.freq, self.oscil.phasor)
-                sig2 = self.env2.gen_env(count, sig2, numsamples, self.oscil2.freq, self.oscil2.phasor)
-                release1 = self.env1.get_releases(self.oscil)
-                release2 = self.env1.get_releases(self.oscil)
-
-
                 tot = 0
-                tot_transients =0
                 sig_count = 0
-                sig_count_t = 0
-                if not sig1 == None:
-                    tot += sig1
-                    sig_count += 1
 
-                if not sig2 == None:
-                    tot += sig2
-                    sig_count += 1
+                for j in self.voices:
+                    if j.in_use == True:
+                        sig = j.genOutput()
+                        if not sig == None:
+                            tot += sig
+                            sig_count += 1
 
-                if not release1 == 0:
-                    tot_transients += release1[0]
-                    sig_count_t += release1[1]
-
-                if not release2 == 0:
-                    tot_transients += release2[0]
-                    sig_count_t += release2[1]
 
                 #mixes the feed
-                if not sig_count_t == 0:
-                    tot_transients = (tot_transients//sig_count_t)*self.volume
-
                 if not sig_count == 0:
-                    tot = ((tot+tot_transients)//math.sqrt(sig_count))*self.volume
-
-
+                    tot = (tot//math.sqrt(sig_count))
 
                 # Limits the feed, if tot > 100% volume clip it to 100%
                 if tot > 32767:
@@ -309,7 +289,7 @@ class synth:
                 count += 1
 
             samples.append(notesamp)
-
+        totalsamples = math.floor(totalsamples)
         self.aud.setperiodsize((totalsamples*2) -1)
 
         if ard_rec == False:
