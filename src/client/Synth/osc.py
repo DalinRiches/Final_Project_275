@@ -12,9 +12,7 @@ class wtOsc:
             Args:
                 phasor=0    float, allows the ability to set the phasor value
 
-                pOffest=0.5     int, notimplemented
-
-                wave_tables=None    wavetable
+                pOffest=0.5     int 0 to 2048, Allows phase shifting of an osc
 
                 samplerate=44100    int, frequncy samples are generated
 
@@ -29,19 +27,20 @@ class wtOsc:
                 none
     '''
 
-    def __init__(self, phasor=0, pOffset=0.5, wave_tables=None, samplerate=44100, detune=0, wavetablepos=0, volume=1):
+    def __init__(self, pOffset=0, wav=None, samplerate=44100, detune=0, wavetablepos=0, volume=1):
+        self.wavetable = Synth.wavetables.wavetable()
         self.wavetsize = 2048
-        self.wave_tables = wave_tables
-        self.wave_tables_num = len(self.wave_tables)/self.wavetsize
+        self.set_wavetable(wav)
         self.samplerate = samplerate
         self.note = None
         self.freq = 0
-        self.phasor = phasor
+        self.pOffset = pOffset
+        self.phasor = self.pOffset
         self.pInc = 0
         self.enable = True
 
         # min max and step used by the LFO
-        self.pOffset = pOffset
+
         self.pOffset_max = self.wavetsize
         self.pOffest_min = 0
         self.pOffest_step = 1
@@ -66,8 +65,9 @@ class wtOsc:
         if wav == None:
             return
 
-        self.wave_tables = Synth.wavetable.parse_wavtab(wav)
+        self.wave_tables = self.wavetable.parse_wavtab(wav=wav)
         self.wave_tables_num = len(self.wave_tables)/self.wavetsize
+
 
     def gen_freq(self, note=None):
         '''

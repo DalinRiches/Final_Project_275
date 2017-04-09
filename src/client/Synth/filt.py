@@ -23,12 +23,14 @@ class filter:
 
     def set_cutoff_highpass(self, cutoff):
         self.cutoff_hp = cutoff
-        self.alpha_hp = 1 / (2 * math.pi * (1/self.samplerate) * self.cutoff_hp)
+        self.alpha_hp = 1 / ((2 * math.pi * (1/self.samplerate) * self.cutoff_hp) + 1)
         self.filtertype = 'High_Pass'
 
     def set_cutoff_lowpass(self, cutoff):
         self.cutoff_lp = cutoff
-        self.alpha_lp = ((2* math.pi * (1/self.samplerate) * self.cutoff_lp)/(((2* math.pi * (1/self.samplerate))+1)))
+        RC =  1/(2*math.pi*self.cutoff_lp)
+        dt = 1/self.samplerate
+        self.alpha_lp = dt/(dt + RC)
         self.filtertype = 'Low_Pass'
 
 
@@ -40,9 +42,11 @@ class filter:
         if self.filtertype == 'High_Pass':
             output = (self.alpha_hp * (self.past_output + inp[0] - inp[1]))
             self.past_output = output
+            output = math.floor(output)
             return output
 
         elif self.filtertype == 'Low_Pass':
             output = (self.past_output + (self.alpha_lp *(inp[0] - self.past_output)))
             self.past_output = output
+            output = math.floor(output)
             return output

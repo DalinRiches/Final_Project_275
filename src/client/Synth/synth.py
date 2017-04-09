@@ -107,13 +107,9 @@ class synth:
         self.mixer = alsaaudio.Mixer()
         self.mixer.setmute(0,0)
 
-        # Load default wavetables
-        self.wave_tables = Synth.wavetables.wavetable(wav='./Synth/Basic Shapes.wav')
-        self.wave_tables2 = Synth.wavetables.wavetable(wav='./Synth/Basic Shapes.wav')
-
         # Load osc's
-        self.oscil = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
-        self.oscil2 = Synth.osc.wtOsc(wave_tables=self.wave_tables.table, volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil = Synth.osc.wtOsc(wav='./Synth/Basic Shapes.wav', volume=0.75, pOffset=1024, detune=0, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil2 = Synth.osc.wtOsc(wav='./Synth/Basic Shapes.wav', volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
         self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0,3,1,0.1)
@@ -126,13 +122,9 @@ class synth:
         self.fil1_past = [0,0]
 
         # Load LFO's
-        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='detune', speed=0.4, amount=1)
-        self.lfo2 = Synth.LFO.lfo(device=self.lfo1, control='offset', speed=1, amount=1)
-
-
-        # The period size controls the internal number of frames per period.
-        # The significance of this parameter is documented in the ALSA api.
-
+        self.lfo1 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
+        self.lfo2 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
+        self.lfo3 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
 
 
     def gen_freq(self, note, osc):
@@ -194,8 +186,6 @@ class synth:
         '''
         totaltime = 0
 
-        self.oscil2.enable = False
-
         totalsamples = 0
         samples = []
 
@@ -218,6 +208,7 @@ class synth:
                 # Run LFO's
                 self.lfo1.update_control(self.lfo1.device, self.lfo1.control)
                 self.lfo2.update_control(self.lfo2.device, self.lfo2.control)
+                self.lfo3.update_control(self.lfo3.device, self.lfo3.control)
 
                 # Run oscs
                 sig1 = self.oscil.genOutput()
@@ -254,6 +245,12 @@ class synth:
                 self.fil1_past.append(self.fil1.generate_output(self.mix_past))
                 del self.fil1_past[0]
                 output = self.fil2.generate_output(self.fil1_past)
+
+                # Limits the feed, if tot > 100% volume clip it to 100%
+                if output > 32767:
+                    output = 32767
+                elif output < -32768:
+                    output = -32768
 
                 notesamp.append(output)
                 count += 1

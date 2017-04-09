@@ -43,9 +43,6 @@ class wavetable:
             return
 
         with wave.open(wav,mode='rb') as wav:
-            channels = wav.getnchannels()
-            data_size = wav.getsampwidth()
-            samplerate = wav.getframerate()
 
             num_frame = wav.getnframes()
             if not num_frame%2048 == 0:
