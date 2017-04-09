@@ -27,6 +27,7 @@ class envelope:
         self.sustain_amp = sustain_amp
         self.releasesamples = release * samplerate
         self.samplerate = samplerate
+        self.releases = []
 
         # Used by LFO
         self.attack_min = 0
@@ -61,15 +62,36 @@ class envelope:
     def set_release(self, time):
         self.releasesamples = time * self.samplerate
 
-    def gen_env(self, curr_sample, inp):
+    def get_releases(self, osc):
+        old_phasor = osc.phasor
+        old_freq = osc.freq
+        len_releases = len(self.releases)
+        if len_releases <= 0:
+            return 0
+        tot = 0
+        for i in self.releases:
+            osc.freq = i[0]
+            osc.phase = i[1]
+            curr = i[2]
+            totsamp = i[3]
+            sus_amp = i[4]
+
+            val = osc.genOutput()
+            tot += ((-sus_amp/totsamp)*curr + sus_amp)*val
+            i[2] += 1
+
+
+        osc.phasor = old_phasor
+        osc.freq = old_freq
+        output = [tot,len_releases]
+        return output
+
+    def gen_env_graph(self, curr_sample, inp):
         '''
         This function outputs the scaling factor based on the current sample
-
             Args:
                 curr_sample: int, corresponding to the current sample number being processed
-
                 inp:    float, corresponding to an input audio stream
-
             Returns:
                 float, corresponding to the scaled suadio stream
         '''
@@ -89,3 +111,31 @@ class envelope:
 
         else:
             return 0
+
+    def gen_env(self, curr_sample, totsample, inp, freq, phase):
+        '''
+        This function outputs the scaling factor based on the current sample
+
+            Args:
+                curr_sample: int, corresponding to the current sample number being processed
+
+                inp:    float, corresponding to an input audio stream
+
+            Returns:
+                float, corresponding to the scaled suadio stream
+        '''
+
+        if curr_sample < self.attacksamples and not self.attacksamples == 0:
+            return (curr_sample/self.attacksamples) * inp
+
+        elif ((curr_sample - self.attacksamples) < self.decaysamples) and not self.decaysamples == 0:
+            return (((self.sustain_amp - 1)/self.decaysamples)*(curr_sample - self.attacksamples) + 1) * inp
+
+        elif curr_sample < (totsample - 1):
+            return self.sustain_amp * inp
+
+        elif curr_sample == (totsample-1):
+            if freq == 0:
+                return 0
+
+            self.releases.append([freq, phase, 0, self.releasesamples, self.sustain_amp])

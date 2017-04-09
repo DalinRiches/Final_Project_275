@@ -136,8 +136,8 @@ class synth:
         self.oscil2 = Synth.osc.wtOsc(wav='./Synth/Basic Shapes.wav', volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
-        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0,3,1,0.1)
-        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0,3,1,0.1)
+        self.env1 = Synth.envelope.envelope(self.samplerate,0.1,0,0.5,1,2)
+        self.env2 = Synth.envelope.envelope(self.samplerate,0.1,0,0.5,1,2)
 
         # Load Filter's
         self.fil1 = Synth.filt.filter()
@@ -146,7 +146,7 @@ class synth:
         self.fil1_past = [0,0]
 
         # Load LFO's
-        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='volume', speed=1, amount=1)
+        self.lfo1 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
         self.lfo2 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
         self.lfo3 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
 
@@ -213,6 +213,9 @@ class synth:
         totalsamples = 0
         samples = []
 
+        self.env1.releases = []
+        self.env2.releases = []
+
         for i in sequence:
             numsamples = i[1] * self.samplerate
             totalsamples += math.floor(numsamples)
@@ -221,8 +224,13 @@ class synth:
                 self.oscil.phasor = 0
                 self.oscil2.phasor = 0
 
-            self.oscil.gen_freq(i[0])
-            self.oscil.gen_freq(i[0])
+            if not i[0][0] == 0:
+                self.oscil.gen_freq(i[0])
+                self.oscil.gen_freq(i[0])
+
+            else:
+                self.oscil.freq = 0
+                self.oscil2.freq = 0
 
 
             count = 0
@@ -240,19 +248,40 @@ class synth:
 
 
                 # Feed into envelope
-                sig1 = self.env1.gen_env(count, sig1)
-                sig2 = self.env2.gen_env(count, sig2)
+                sig1 = self.env1.gen_env(count, sig1, numsamples, self.oscil.freq, self.oscil.phasor)
+                sig2 = self.env2.gen_env(count, sig2, numsamples, self.oscil2.freq, self.oscil2.phasor)
+                release1 = self.env1.get_releases(self.oscil)
+                release2 = self.env1.get_releases(self.oscil)
 
 
                 tot = 0
+                tot_transients =0
+                sig_count = 0
+                sig_count_t = 0
                 if not sig1 == None:
                     tot += sig1
+                    sig_count += 1
 
                 if not sig2 == None:
                     tot += sig2
+                    sig_count += 1
+
+                if not release1 == 0:
+                    tot_transients += release1[0]
+                    sig_count_t += release1[1]
+
+                if not release2 == 0:
+                    tot_transients += release2[0]
+                    sig_count_t += release2[1]
 
                 #mixes the feed
-                tot = (tot//math.sqrt(2))*self.volume
+                if not sig_count_t == 0:
+                    tot_transients = (tot_transients//sig_count_t)*self.volume
+
+                if not sig_count == 0:
+                    tot = ((tot+tot_transients)//math.sqrt(sig_count))*self.volume
+
+
 
                 # Limits the feed, if tot > 100% volume clip it to 100%
                 if tot > 32767:
@@ -337,7 +366,7 @@ class synth:
 if __name__ == "__main__":
 
     syn = synth();
-    sequence = [[['A',3],4],[['G',3],4],[['F',3],4],[['A',3],2],[['G',3],2],[['F',3],0.5],[['A',3],0.5],
+    sequence = [[['A',3],1],[[0,0],2],[['G',3],4],[['F',3],4],[['A',3],2],[['G',3],2],[['F',3],0.5],[['A',3],0.5],
                     [['G',3],1],[['F',3],1]]
 
     syn.play(sequence)
