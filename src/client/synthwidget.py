@@ -3,6 +3,7 @@ from tkinter.constants import *
 
 import dialwidget
 import graphwidget
+import menuwidget
 
 PANEL_HEIGHT = 100
 PANEL_WIDTH = 256
@@ -313,13 +314,13 @@ class EnvPanel(SynthPanel):
 
 
     def _special_init(self):
-        ''' Creates variables for storing sustain time and level
-        since they can only be set together. The last value of
-        each must be known while setting the other. '''
-        self._val_sus_time = 0.15
-        self._val_sus_lvl = 0.8
-
-
+        # just to make the graph look nice
+        # (sustainsamples isn't used by the actual envelope generator,
+        # but it is used by the non-time-scaled generator which is used
+        # to draw the graph.)
+        self.target.sustainsamples = 0.25 * self.target.samplerate
+    
+    
     def _dials(self):
         return [
             {'label': "Attack",
@@ -334,12 +335,7 @@ class EnvPanel(SynthPanel):
              'update_graph': True },
             {'label': "Sustain",
              'dmin': 0, 'dmax': 1,
-             'dinitial': self._val_sus_time,
-             'callback': self._set_sustain,
-             'update_graph': True },
-            {'label': "Sus. Level",
-             'dmin': 0, 'dmax': 1,
-             'dinitial': self._val_sus_lvl,
+             'dinitial': 0.8,
              'valformat': "{:.1f}",
              'callback': self._set_sustain,
              'update_graph': True },
@@ -352,28 +348,26 @@ class EnvPanel(SynthPanel):
 
 
     def _graph_fx(self, x):
-        ''' Checks the envelope response for each moment in time. '''
-
+        ''' Checks the non-time-scaled envelope response for
+        each moment in time. This doesn't necessarily correspond
+        to the actual envelope shape, but it should. '''
+        
         # converts x in (0, width) to time domain for a scale of 1
         t = ((1 * x / PANEL_GS_WIDTH) * self.target.samplerate)
-
-        # gets envelope response for that time
+        
+        # gets unscaled envelope response for that time
         envval = self.target.gen_env(t, 1)
 
         # converts to panel scale
         return int(envval * (PANEL_GS_HEIGHT - 4))
+    
+    
+    def _set_sustain(self, value):
+        ''' Sets sustain amplitude - function requires an extra
+        parameter '''
 
+        self.target.set_sustain(None, value)
 
-    def _set_sustain(self, value, label):
-        ''' Sets sustain amplitude and time by looking up the
-        previous value of whichever isn't being currently set. '''
-
-        if label == "Sustain":
-            self._val_sus_time = value
-        elif label == "Sus. Level":
-            self._val_sus_lvl = value
-
-        self.target.set_sustain(self._val_sus_time, self._val_sus_lvl)
 
 class FiltPanel(SynthPanel):
     ''' SynthPanel for a Filter component. '''
@@ -475,8 +469,57 @@ class LFOPanel(SynthPanel):
 
 
     def _special_init(self):
-        # TODO select what to control
-        pass
+        self._choices_osc = {
+            "Frame": 'wavetable position',
+            "Detune": 'detune',
+            "Volume": 'volume'
+        }
+        
+        self._choices_env = {
+            "Attack": 'attack',
+            "Decay": 'decay',
+            "Sustain": 'sustainamp',
+            "Release": 'release'
+        }
+        
+        self._choices_fil = {
+            "Cutoff": 'cutoff'
+        }
+        
+        self._choices_lfo = {
+            "Freq": 'speed',
+            "Range": 'amount',
+            "Offset": 'offset'
+        }
+        
+        self.w_menu_p = menuwidget.Menu(
+            parent=self.w_top,
+            label="",
+            choices={},
+            callback=self._set_target_param
+        )
+        self.w_menu_p.pack(side=RIGHT, fill=X)
+        
+        self.w_menu_t = menuwidget.Menu(
+            parent=self.w_top,
+            label="None",
+            choices={
+                "None": (None, None),
+                "Osc1": ('oscil', self._choices_osc),
+                "Osc2": ('oscil2', self._choices_osc),
+                "Env1": ('env1', self._choices_env),
+                "Env2": ('env2', self._choices_env),
+                "Fil1": ('filt1', self._choices_fil),
+                "Fil2": ('filt2', self._choices_fil),
+                "LFO1": ('lfo1', self._choices_lfo),
+                "LFO2": ('lfo2', self._choices_lfo),
+                "LFO3": ('lfo3', self._choices_lfo)
+            },
+            callback=self._set_target,
+        )
+        self.w_menu_t.pack(side=RIGHT, fill=X)
+        
+        self.target.set_device_control(None, None)
 
 
     def _dials(self):
@@ -518,3 +561,24 @@ class LFOPanel(SynthPanel):
         ws = ['sin', 'square', 'saw'][idx]
 
         self.target.wavetype = ws
+    
+    
+    def _set_target(self, target):
+        ''' Sets the target component for the LFO. '''
+        if target[0] is not None:
+            self.lfo_target = self.synth.__dict__[target[0]]
+            self.w_menu_p.choices = target[1]
+        else:
+            self.lfo_target = None
+            self.w_menu_p.choices = {}
+        self.w_menu_p.set_label("")
+        self.target.set_device_control(None, None)
+    
+    
+    def _set_target_param(self, target):
+        ''' Sets the target parameter for the LFO. '''
+        self.target.set_device_control(self.lfo_target, target)
+    
+    
+    def bind_to_synth(self, synth):
+        self.synth = synth
