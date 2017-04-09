@@ -40,7 +40,7 @@ class lfo:
         self.device = device
         self.control = control
 
-    def set_phase(self):
+    def get_retrig(self):
         if self.retrig == True:
             self.phase = 0
 
@@ -84,7 +84,10 @@ class lfo:
         if control == None:
             return
 
+        self.get_retrig()
+
         scale = self.genOutput()
+
         if scale > 1:
             scale = 1
         elif scale < -1:
