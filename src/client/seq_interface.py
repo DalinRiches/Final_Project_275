@@ -4,61 +4,64 @@ from tkinter.constants import *
 
 # Custom widget-like definitions
 import synthwidget
-import seqwidget
 import newseqwidget
+import dialwidget
 
 # Synthesizer
 import Synth
 
 
-
-# TODO this isn't really useful anymore.
-# should probably be redesigned.
 class PlaybackController:
-    ''' Contains a synth object and a list of callbacks.
-    When play() is called, all the callbacks are invoked
-    in the order they were bound before calling play on
-    the synth object. Used to apply changes from the
-    interface. '''
+    ''' Represents the overall structure of the playback sequence.
+    seqsource contains a function that generates a sequence of notes. '''
     
     def __init__(self, synth):
         self.synth = synth
-        self.callbacks = []
-        self.seq_callback = None
-        self.seq = None
-    
-    
-    def bind(self, fn):
-        self.callbacks.append(fn)
-    
-    
-    def bind_seq_generator(self, fn):
-        self.seq_callback = fn
+        self.seqsource = None
+        self._play_speed = 0.5
     
     
     def get_sequence(self):
         print("Getting sequence...")
-        seq = self.seq_callback()
+        seq = self.seqsource()
         print(seq)
         return seq
     
     
+    def set_play_speed(self, value):
+        ''' Sets the play speed. '''
+        self._play_speed = value
+    
+    
+    def get_play_speed(self):
+        ''' Gets the play speed. '''
+        return self._play_speed
+    
+    
     def play(self):
-        for fn in self.callbacks:
-            fn()
-        
         seq = self.get_sequence()
         print("Playing...")
         self.synth.play(seq, slide=True)
         print("Done")
-        
+    
     
 
 def gen_controlbar(tk, ctrl):
+    ''' Creates the main playback control bar, with a Play button
+    and a speed (reciprocal tempo) dial. '''
+    
     bar = tkinter.Frame(
         tk,
         bd=2,
         relief=RAISED
+    )
+    
+    bar_dial = dialwidget.Dial(
+        bar,
+        label="Speed",
+        dmin=0.2, dmax=2.0,
+        dinitial=0.5,
+        callback=ctrl.set_play_speed
     )
     
     bar_play = tkinter.Button(
@@ -68,6 +71,8 @@ def gen_controlbar(tk, ctrl):
         font="Fixed 9",
         command=ctrl.play
     )
+    
+    bar_dial.pack(side=LEFT)
     bar_play.pack(side=LEFT)
     
     return bar
@@ -86,10 +91,10 @@ def setup(synth):
         length=50,
         height=24,
         firstnoteidx=3*12-1, # (index of C3)
-        temposource=lambda: 0.5
+        temposource=ctrl.get_play_speed
     )
     
-    ctrl.bind_seq_generator(seq.sequence)
+    ctrl.seqsource = seq.sequence
     
     oscframe = tkinter.Frame()
     
@@ -145,6 +150,10 @@ def setup(synth):
         parent=lfoframe,
         target=synth.lfo3
     )
+    
+    lfo1ct.bind_to_synth(synth)
+    lfo2ct.bind_to_synth(synth)
+    lfo3ct.bind_to_synth(synth)
     
     lfo1ct.pack(side=LEFT, fill=X)
     lfo2ct.pack(side=LEFT, fill=X)

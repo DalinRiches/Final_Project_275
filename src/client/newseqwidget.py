@@ -107,8 +107,11 @@ class Sequencer:
             else:
                 if self.steps[grid_x] is not None:
                     self._set_deselected(grid_x, self.steps[grid_x])
+                    self.steps[grid_x] = None
+                    self.step_is_continuous[grid_x] = False
             if grid_x + 1 in range(self.length):
-                if self.step_is_continuous[grid_x + 1]:
+                if (self.step_is_continuous[grid_x + 1]
+                    and self.steps[grid_x + 1] != start_grid_y):
                     # a continuous step is always selected
                     self._set_selected(grid_x+1, self.steps[grid_x+1])
                     self.step_is_continuous[grid_x + 1] = False
@@ -159,6 +162,8 @@ class Sequencer:
                     note = NOTE_NAMES[nidx % len(NOTE_NAMES)]
                     octave = nidx // len(NOTE_NAMES)
                     seq.append([[note, octave], 1 * tempo])
+        # allow releases to complete
+        seq.append([None, 5.0])
         return seq
     
     
