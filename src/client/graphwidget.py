@@ -46,9 +46,11 @@ class GraphScreen:
     def redraw(self):
         ''' Draws a representation of the function fx
         to the encapsulated canvas. '''
+        yprev = None
         for x in range(self.width):
             y = self.fx(x)
-            self._write_column(x, y)
+            self._write_column(x, y, yprev)
+            yprev = y
         self._make_bitmap()
     
     
@@ -71,11 +73,18 @@ class GraphScreen:
         )
     
     
-    def _write_column(self, x, y):
-        #print(x, y)
+    def _write_column(self, x, y, yprev=None):
+        ''' Sets pixel y in column x on and the rest of the pixels
+        in the column off. If yprev is specified, interpolates
+        from the given value by filling in the pixels in column x
+        between the two y-values, giving a continuous graph (given
+        yprev is actually the previous y). '''
+        
         for yi in range(self.height):
-            if yi == y:
-                self._write_bit(x, yi, True)
+            if (yi == y
+                or (yprev is not None and y < yi < yprev)
+                or (yprev is not None and yprev < yi < y)):
+                    self._write_bit(x, yi, True)
             else:
                 self._write_bit(x, yi, False)
     

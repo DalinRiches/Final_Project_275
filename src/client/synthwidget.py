@@ -329,7 +329,14 @@ class FiltPanel(SynthPanel):
     
     
     def _graph_fx(self, x):
-        return PANEL_GS_HEIGHT/2
+        if 'band' not in self.__dict__:
+            return None
+        
+        freq = 10**(((x * 2 / PANEL_GS_WIDTH) - 1) * 5)
+        if self.band == "High Pass":
+            return int(PANEL_GS_HEIGHT / (1 + self.target.cutoff_hp / freq))
+        else:
+            return int(PANEL_GS_HEIGHT / (1 + freq / self.target.cutoff_lp))
     
     
     def _log_set_cutoff(self, value, label):
@@ -339,6 +346,7 @@ class FiltPanel(SynthPanel):
             self.target.set_cutoff_highpass(10**value)
         else:
             self.target.set_cutoff_lowpass(10**value)
+        self.w_graph.redraw()
 
 
 class LFOPanel(SynthPanel):
