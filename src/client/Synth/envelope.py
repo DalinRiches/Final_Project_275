@@ -27,7 +27,6 @@ class envelope:
         self.sustain_amp = sustain_amp
         self.releasesamples = release * samplerate
         self.samplerate = samplerate
-        self.releases = []
 
         # Used by LFO
         self.attack_min = 0
@@ -70,8 +69,6 @@ class envelope:
             Returns:
                 float, corresponding to the scaled suadio stream
         '''
-        if curr_sample == 0:
-            return 0
         if curr_sample < self.attacksamples and not self.attacksamples == 0:
             return (curr_sample/self.attacksamples) * inp
 

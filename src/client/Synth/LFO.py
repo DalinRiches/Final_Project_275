@@ -211,8 +211,6 @@ class lfo:
                     else:
                         device.set_cutoff_lowpass(delta)
 
-                    print(device.cutoff_lp)
-
                 if device.filtertype == 'High Pass': # Does not work
                     scale = (scale/2) + 0.5
                     delta = (device.set_cutoff_highpass_max*scale)
@@ -228,7 +226,6 @@ class lfo:
                     else:
                         device.set_cutoff_highpass(delta)
 
-                    print(device.cutoff_hp)
         if isinstance(device, lfo):
 
             if control == 'speed': # works
@@ -293,5 +290,5 @@ class lfo:
 
 
         elif self.wavetype == 'saw':
-            scale = ((-1/math.pi)*self.phase + 1 + self.offset) * self.amount
+            scale = ((-1/math.pi)*self.phase + 1) * self.amount + self.offset
             return scale

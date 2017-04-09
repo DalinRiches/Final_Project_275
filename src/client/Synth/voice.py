@@ -70,7 +70,6 @@ class voice:
                 tot += sig2
                 sig_count += 1
 
-            output = ((tot)//math.sqrt(sig_count))
             self.curr_sample += 1
 
-            return output
+            return [tot, sig_count]

@@ -153,7 +153,7 @@ class synth:
         self.fil1_past = [0,0]
 
         # Load LFO's
-        self.lfo1 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
+        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='detune', speed=1, amount=0.1)
         self.lfo2 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
         self.lfo3 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
 
@@ -222,20 +222,18 @@ class synth:
         samples = []
         for i in self.voices:
             i.in_use = False
-        self.env1.releases = []
-        self.env2.releases = []
 
         for i in sequence:
             note = i[0]
             time = i[1]
             notesamp = []
-            if not slide:
-                self.oscil.phasor = 0
-                self.oscil2.phasor = 0
 
+            '''
             if not note == None:
                 for i in self.voices:
                     i.in_use = False
+            '''
+
             for j in self.voices:
                 if j.in_use == False:
                     j.load_note(note, time)
@@ -258,15 +256,11 @@ class synth:
 
                 for j in self.voices:
                     if j.in_use == True:
-                        sig = j.genOutput()
-                        if not (sig == None or sig == 0):
-                            tot += sig
-                            sig_count += 1
+                        out = j.genOutput()
+                        if not (out == None or out[0] == 0):
+                            tot += out[0]
+                            sig_count += out[1]
 
-
-                #mixes the feed
-                if not sig_count == 0:
-                    tot = (tot//(2*sig_count))* self.volume
 
                 # Limits the feed, if tot > 100% volume clip it to 100%
                 if tot > 32767:
@@ -290,59 +284,16 @@ class synth:
                 elif output < -32768:
                     output = -32768
 
-                notesamp.append(output)
+                notesamp.append(output*self.volume)
                 count += 1
 
             samples.append(notesamp)
         totalsamples = math.floor(totalsamples)
         self.aud.setperiodsize((totalsamples*2))
 
-        if ard_rec == False:
-            for i in samples:
-                self.aud.write(np.int16(i))
-        else:
-            ard_bytes = []
-            for i in range(0,8100):
+        for i in samples:
+            self.aud.write(np.int16(i))
 
-                if samples[0][i] > 0:
-
-                    ard_bytes.append(math.floor((samples[0][i]/32768) * 255))
-                elif samples[0][i] < 0:
-
-                    ard_bytes.append(math.floor(255 - ((samples[0][i]/32768) * 255)))
-
-                else:
-                    ard_bytes.append(0)
-
-
-
-            try:
-                print(ard_bytes)
-                with serial.Serial(port='/dev/ttyACM13', baudrate=9600) as ser:
-
-                    while(True):
-                        if ser.in_waiting > 0:
-                            junk = ser.read(1)
-
-                        if ser.in_waiting == 0:
-                            break
-
-                    time.sleep(5)
-                    count = 0
-                    ser.write(b'RRR')
-                    for i in range(0, 8100):
-                        count += 1
-                        ser.write(b'T')
-                        ser.write(bytes([ard_bytes[i],]))
-
-                        print(count)
-                        while(True):
-                            reply = ser.read(1)
-                            if reply == b'R':
-                                break
-
-            except serial.SerialException:
-                print("Could not open port")
 
 
 
