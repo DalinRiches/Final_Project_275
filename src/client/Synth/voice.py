@@ -72,5 +72,5 @@ class voice:
 
             output = ((tot)//math.sqrt(sig_count))
             self.curr_sample += 1
-            print(output)
+
             return output
