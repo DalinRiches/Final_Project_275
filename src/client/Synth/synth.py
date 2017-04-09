@@ -18,14 +18,26 @@ class synth:
 
         Contains:
             -Two oscilator's
-            -An envelope for each oscillator
+            -Two envolopes, one envelope for each oscillator
             -Two filter's in series. Both streams get combined then passed through the first
-            -A single delay the filtered stream is passed through    (Might Implemente)
-            -Three LFO's for modulation of parameter's   (Not implemented)
+            -Three LFO's for modulation of parameter's
 
         It is recommended that you control everything through the synth class:
             Controls possible with the synth class:
 
+                time is in seconds
+                Hz is a frequncy
+                bool is a bool
+                phase is a float or int corresponding to the phase
+                amplitude is a float between 0 and 1
+                amplitude(-1) is a float -1 to 1
+                semitones is an int corresponding to a semitone
+                frame is an int corresponding to a frame of 2048 samples
+                cutoff is in Hz
+
+                Synth:
+                    volume (amplitude):
+                        synth_class_object.volume
 
                 Oscillator's (names: oscil and oscil2):
 
@@ -35,7 +47,7 @@ class synth:
                     Wavetable Position (frame):
                         synth_class_object.<oscilator>.wavetablepos
 
-                    Volume (scaling factor from 0 to 1):
+                    Volume (amplitude):
                         synth_class_object.<oscilator>.volume
 
                     Phase offset (phase):
@@ -43,6 +55,9 @@ class synth:
 
                     Disable (bool):
                         synth_class_object.<oscilator>.enable
+
+                    Change wav used for wavetables:
+                        synth_class_object.,oscilator>.set_wavetable(wav='path to file')
 
 
                 Envelope's (names: env1 and env2):
@@ -73,11 +88,20 @@ class synth:
 
                 Low Frequency Oscillator's:
 
+                    To set speed (Hz):
+                        synth_class_object.<lfo>.set_speed(speed)
 
+                    To set amount (amplitude(-1)):
+                        synth_class_object.<lfo>.amount
 
+                    To set offset (amplitude(-1)):
+                        synth_class_object.<lfo>.offset
 
-                Changing wavetables is not supported yet.
+                    To set waveform (str):
+                        synth_class_object.<lfo>.waveform
 
+                    Enable (bool):
+                        synth_class_object.<lfo>.enable
 
         Audio playback takes a sequence from the sequencer, which will be made in the GUI.
         It then generates the audio for the entire sequence and plays it back through the speaker.
@@ -122,7 +146,7 @@ class synth:
         self.fil1_past = [0,0]
 
         # Load LFO's
-        self.lfo1 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
+        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='volume', speed=1, amount=1)
         self.lfo2 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
         self.lfo3 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
 
