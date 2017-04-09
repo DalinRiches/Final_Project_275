@@ -203,7 +203,11 @@ class OscPanel(SynthPanel):
              'dmin': -24, 'dmax': 24,
              'dmintext': "-24", 'dmaxtext': "+24",
              'dinitial': 0,
-             'target': 'detune' }
+             'target': 'detune' },
+             {'label': "Phase Off",
+              'dmin': 0, 'dmax': 2048, 'dincrement':1,
+              'dinitial':0,
+              'target': 'pOffset'}
         ]
 
 
@@ -237,52 +241,41 @@ class EnvPanel(SynthPanel):
             {'label': "Attack",
              'dmin': 0, 'dmax': 2,
              'dinitial': self._val_atk,
-             'callback': self._set_adr },
+             'callback': self._set_adsr },
             {'label': "Decay",
              'dmin': 0, 'dmax': 2,
              'dinitial': self._val_dec,
-             'callback': self._set_adr },
-            {'label': "Sustain",
-             'dmin': 0, 'dmax': 2,
-             'dinitial': self._val_sus_time,
-             'callback': self._set_sustain },
+             'callback': self._set_adsr },
             {'label': "Sus. Level",
              'dmin': 0, 'dmax': 1,
              'dmintext': "0.0", 'dmaxtext': "1.0",
              'dinitial': self._val_sus_lvl,
-             'callback': self._set_sustain },
+             'callback': self._set_adsr },
             {'label': "Release",
              'dmin': 0, 'dmax': 2,
              'dinitial': self._val_rel,
-             'callback': self._set_adr }
+             'callback': self._set_adsr }
         ]
 
 
     def _graph_fx(self, x):
         t = ((0.5 * x / PANEL_GS_WIDTH) * self.target.samplerate)
-        envval = self.target.gen_env(t, 1)
+        envval = self.target.gen_env_graph(t, 1)
         return int(envval * (PANEL_GS_HEIGHT - 4))
 
 
-    def _set_adr(self, value, label):
+    def _set_adsr(self, value, label):
         if label == "Attack":
             self.target.set_attack(value)
         elif label == "Decay":
             self.target.set_decay(value)
+        elif label == "Sus. Level":
+            self.target.sustain_amp = value
         elif label == "Release":
             self.target.set_release(value)
 
         self.w_graph.redraw()
 
-
-    def _set_sustain(self, value, label):
-        if label == "Sustain":
-            self._val_sus_time = value
-        elif label == "Sus. Level":
-            self._val_sus_lvl = value
-
-        self.target.set_sustain(self._val_sus_time, self._val_sus_lvl)
-        self.w_graph.redraw()
 
 
 class FiltPanel(SynthPanel):

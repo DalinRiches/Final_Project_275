@@ -70,7 +70,8 @@ class envelope:
             Returns:
                 float, corresponding to the scaled suadio stream
         '''
-
+        if curr_sample == 0:
+            return 0
         if curr_sample < self.attacksamples and not self.attacksamples == 0:
             return (curr_sample/self.attacksamples) * inp
 
@@ -87,7 +88,7 @@ class envelope:
         else:
             return 0
 
-    def gen_env_k(self, curr_sample, totsample, inp, freq, phase):
+    def gen_env_graph(self, curr_sample, inp):
         '''
         This function outputs the scaling factor based on the current sample
 
@@ -106,12 +107,9 @@ class envelope:
         elif ((curr_sample - self.attacksamples) < self.decaysamples) and not self.decaysamples == 0:
             return (((self.sustain_amp - 1)/self.decaysamples)*(curr_sample - self.attacksamples) + 1) * inp
 
-        elif curr_sample < (totsample - 1):
-            return self.sustain_amp * inp
+        elif (curr_sample - self.decaysamples - self.attacksamples) <= self.releasesamples and not self.releasesamples == 0:
+            sample = (curr_sample - self.decaysamples - self.attacksamples)
+            return ((-self.sustain_amp/self.releasesamples)*sample + self.sustain_amp) * inp
 
-        elif curr_sample == (totsample-1):
-            if freq == 0:
-                return 0
-            else:
-                self.releases.append([freq, phase, 0, self.releasesamples, self.sustain_amp])
-                return 0
+        else:
+            return 0
