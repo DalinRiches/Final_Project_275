@@ -65,6 +65,7 @@ def gen_controlbar(tk, ctrl):
         bar,
         bg="green",
         text="Play",
+        font="Fixed 9",
         command=ctrl.play
     )
     bar_play.pack(side=LEFT)
@@ -82,12 +83,11 @@ def setup(synth):
     
     seq = newseqwidget.Sequencer(
         parent=tk,
-        length=32,
+        length=50,
         height=24,
         firstnoteidx=3*12-1, # (index of C3)
         temposource=lambda: 0.5
     )
-    seq.pack(side=BOTTOM)
     
     ctrl.bind_seq_generator(seq.sequence)
     
@@ -109,7 +109,7 @@ def setup(synth):
     osc1ct.pack(side=LEFT, fill=X)
     osc2ct.pack(side=LEFT, fill=X)
     filt1ct.pack(side=LEFT, fill=X)
-    oscframe.pack(side=TOP, fill=X)
+    oscframe.pack(side=TOP)
     
     envframe = tkinter.Frame()
     
@@ -129,10 +129,35 @@ def setup(synth):
     env1ct.pack(side=LEFT, fill=X)
     env2ct.pack(side=LEFT, fill=X)
     filt2ct.pack(side=LEFT, fill=X)
-    envframe.pack(side=TOP, fill=X)
+    envframe.pack(side=TOP)
+    
+    lfoframe = tkinter.Frame()
+    
+    lfo1ct = synthwidget.LFOPanel(
+        parent=lfoframe,
+        target=synth.lfo1
+    )
+    lfo2ct = synthwidget.LFOPanel(
+        parent=lfoframe,
+        target=synth.lfo2
+    )
+    lfo3ct = synthwidget.LFOPanel(
+        parent=lfoframe,
+        target=synth.lfo3
+    )
+    
+    lfo1ct.pack(side=LEFT, fill=X)
+    lfo2ct.pack(side=LEFT, fill=X)
+    lfo3ct.pack(side=LEFT, fill=X)
+    lfoframe.pack(side=TOP)
     
     ctrlbar = gen_controlbar(tk, ctrl)
-    ctrlbar.pack(side=BOTTOM)
+    ctrlbar.pack(side=TOP)
+    
+    # NOTE seq must be packed last so that if the window runs
+    # out of room it loses seq rows, instead of more important
+    # things like oscillator dials.
+    seq.pack(side=BOTTOM)
     
     return tk
 

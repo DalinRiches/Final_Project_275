@@ -16,7 +16,8 @@ class voice:
         self.release2 = self.env2.releasesamples
         self.freq1 = freq1
         self.freq2 = freq2
-        self.phase1 = phase2
+        self.phase1 = phase1
+        self.phase2 = phase2
         self.in_use = False
 
         self.totsamp = self.notesamp + max([self.release1, self.release2])
@@ -26,7 +27,7 @@ class voice:
             self.freq1 = self.osc1.gen_freq(note)
             self.freq2 = self.osc2.gen_freq(note)
             self.phase1 = self.osc1.pOffset
-            self.phase2 =self.osc2.pOffset
+            self.phase2 = self.osc2.pOffset
             self.notesamp = self.samplerate * time
             self.curr_sample = 0
             self.totsamp = self.notesamp + max([self.env1.releasesamples, self.env2.releasesamples])
@@ -71,5 +72,5 @@ class voice:
 
             output = ((tot)//math.sqrt(sig_count))
             self.curr_sample += 1
-
+            print(output)
             return output

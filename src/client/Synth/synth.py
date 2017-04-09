@@ -220,7 +220,8 @@ class synth:
 
         totalsamples = 0
         samples = []
-
+        for i in self.voices:
+            i.in_use = False
         self.env1.releases = []
         self.env2.releases = []
 
@@ -231,6 +232,10 @@ class synth:
             if not slide:
                 self.oscil.phasor = 0
                 self.oscil2.phasor = 0
+
+            if not note == None:
+                for i in self.voices:
+                    i.in_use = False
             for j in self.voices:
                 if j.in_use == False:
                     j.load_note(note, time)
@@ -254,14 +259,14 @@ class synth:
                 for j in self.voices:
                     if j.in_use == True:
                         sig = j.genOutput()
-                        if not sig == None:
+                        if not (sig == None or sig == 0):
                             tot += sig
                             sig_count += 1
 
 
                 #mixes the feed
                 if not sig_count == 0:
-                    tot = (tot//math.sqrt(sig_count))
+                    tot = (tot//(2*sig_count))* self.volume
 
                 # Limits the feed, if tot > 100% volume clip it to 100%
                 if tot > 32767:
@@ -290,7 +295,7 @@ class synth:
 
             samples.append(notesamp)
         totalsamples = math.floor(totalsamples)
-        self.aud.setperiodsize((totalsamples*2) -1)
+        self.aud.setperiodsize((totalsamples*2))
 
         if ard_rec == False:
             for i in samples:
