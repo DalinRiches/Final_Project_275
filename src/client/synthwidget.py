@@ -15,11 +15,11 @@ class SynthPanel:
     a Top panel, containing a label and a toggle;
     a Middle panel, containing a graphscreen (optional);
     and a Bottom panel, containing some Dials.
-    
+
     Parameters:
         parent: (Widget) tk-style parent widget
         target: (Synth component) the component to control
-    
+
     This is a base class. It should not be directly placed on screen.
     Instead, the subclasses OscPanel, EnvPanel, FiltPanel, and LFOPanel
     should be used. '''
@@ -173,7 +173,7 @@ class SynthPanel:
         if 'callback' not in kwargs and 'target' in kwargs:
             kwargs['callback'] = self._set_param
             target = kwargs['target']
-            
+
             if target not in self.target.__dict__:
                 print_warning("targets parameter {} of {}, which doesn't look "
                               "like it exists.".format(target, self.target))
@@ -194,15 +194,15 @@ class SynthPanel:
         
         # save target
         self._dial_targets[kwargs['label']] = target
-        
+
         # instantiate dial
         dial = dialwidget.Dial(
             parent=self.w_bot,
             **kwargs
         )
         dial.pack(side=LEFT, expand=1)
-    
-    
+
+
     def _toggle_enabled(self):
         ''' Toggles the ON/OFF switch of the panel and enables/disables
         the target synth component. '''
@@ -214,8 +214,8 @@ class SynthPanel:
         
         self.enabled = not self.enabled
         self.target.enable = self.enabled
-    
-    
+
+
     def _set_param(self, value, label):
         ''' Sets the parameter named by _dial_targets[label]
         (set up by _add_dial) to the value. This is a callback
@@ -224,6 +224,7 @@ class SynthPanel:
         
         iden = self._dial_targets[label]
         self.target.__dict__[iden] = value
+        
         
         # update graph if requested
         if label in self._dial_causes_update:
@@ -254,11 +255,11 @@ class SynthPanel:
     def pack(self, **kwargs):
         ''' Packs the underlying widget. '''
         self.widget.pack(**kwargs)
-
-
+    
+    
 class OscPanel(SynthPanel):
     ''' SynthPanel for an Oscillator component. '''
-    
+
     _label = "Oscillator"
     
     
@@ -281,8 +282,8 @@ class OscPanel(SynthPanel):
              'valformat': "{:+.0f}",
              'target': 'detune' }
         ]
-    
-    
+
+
     def _graph_fx(self, x):
         ''' Gets the graph shape from the oscillator's wavetable. '''
         
@@ -296,8 +297,8 @@ class OscPanel(SynthPanel):
         
         # scales wtval to panel height size
         return PANEL_GS_HEIGHT * wtval // 65536
-    
-    
+
+
     def _set_waveshape(self, value, label):
         ''' Callback to set the oscillator waveshape. '''
         
@@ -371,9 +372,9 @@ class EnvPanel(SynthPanel):
             self._val_sus_time = value
         elif label == "Sus. Level":
             self._val_sus_lvl = value
-        
-        self.target.set_sustain(self._val_sus_time, self._val_sus_lvl)
 
+        self.target.set_sustain(self._val_sus_time, self._val_sus_lvl)
+    
 
 class FiltPanel(SynthPanel):
     ''' SynthPanel for a Filter component. '''
@@ -402,7 +403,7 @@ class FiltPanel(SynthPanel):
         # for consistency
         self._toggle_band()
     
-    
+
     def _toggle_band(self):
         ''' Switches the band of the filter. '''
         
@@ -461,8 +462,8 @@ class FiltPanel(SynthPanel):
             self.target.set_cutoff_highpass(10**value)
         else:
             self.target.set_cutoff_lowpass(10**value)
-
-
+    
+    
 class LFOPanel(SynthPanel):
     ''' SynthPanel for an LFO component. '''
     

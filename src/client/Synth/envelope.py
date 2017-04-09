@@ -27,6 +27,7 @@ class envelope:
         self.sustain_amp = sustain_amp
         self.releasesamples = release * samplerate
         self.samplerate = samplerate
+        self.releases = []
 
         # Used by LFO
         self.attack_min = 0
@@ -56,7 +57,6 @@ class envelope:
 
     def set_sustain(self, time, amp):
         self.sustain_amp = amp
-        self.sustainsamples = time * self.samplerate
 
     def set_release(self, time):
         self.releasesamples = time * self.samplerate
@@ -64,12 +64,9 @@ class envelope:
     def gen_env(self, curr_sample, inp):
         '''
         This function outputs the scaling factor based on the current sample
-
             Args:
                 curr_sample: int, corresponding to the current sample number being processed
-
                 inp:    float, corresponding to an input audio stream
-
             Returns:
                 float, corresponding to the scaled suadio stream
         '''
@@ -89,3 +86,32 @@ class envelope:
 
         else:
             return 0
+
+    def gen_env_k(self, curr_sample, totsample, inp, freq, phase):
+        '''
+        This function outputs the scaling factor based on the current sample
+
+            Args:
+                curr_sample: int, corresponding to the current sample number being processed
+
+                inp:    float, corresponding to an input audio stream
+
+            Returns:
+                float, corresponding to the scaled suadio stream
+        '''
+
+        if curr_sample < self.attacksamples and not self.attacksamples == 0:
+            return (curr_sample/self.attacksamples) * inp
+
+        elif ((curr_sample - self.attacksamples) < self.decaysamples) and not self.decaysamples == 0:
+            return (((self.sustain_amp - 1)/self.decaysamples)*(curr_sample - self.attacksamples) + 1) * inp
+
+        elif curr_sample < (totsample - 1):
+            return self.sustain_amp * inp
+
+        elif curr_sample == (totsample-1):
+            if freq == 0:
+                return 0
+            else:
+                self.releases.append([freq, phase, 0, self.releasesamples, self.sustain_amp])
+                return 0
