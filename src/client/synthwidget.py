@@ -319,8 +319,8 @@ class EnvPanel(SynthPanel):
         # but it is used by the non-time-scaled generator which is used
         # to draw the graph.)
         self.target.sustainsamples = 0.25 * self.target.samplerate
-    
-    
+
+
     def _dials(self):
         return [
             {'label': "Attack",
@@ -351,17 +351,17 @@ class EnvPanel(SynthPanel):
         ''' Checks the non-time-scaled envelope response for
         each moment in time. This doesn't necessarily correspond
         to the actual envelope shape, but it should. '''
-        
+
         # converts x in (0, width) to time domain for a scale of 1
         t = ((1 * x / PANEL_GS_WIDTH) * self.target.samplerate)
-        
+
         # gets unscaled envelope response for that time
         envval = self.target.gen_env(t, 1)
 
         # converts to panel scale
         return int(envval * (PANEL_GS_HEIGHT - 4))
-    
-    
+
+
     def _set_sustain(self, value):
         ''' Sets sustain amplitude - function requires an extra
         parameter '''
@@ -470,28 +470,28 @@ class LFOPanel(SynthPanel):
 
     def _special_init(self):
         self._choices_osc = {
-            "Frame": 'wavetable position',
+            "Frame": 'wavtable position',
             "Detune": 'detune',
             "Volume": 'volume'
         }
-        
+
         self._choices_env = {
             "Attack": 'attack',
             "Decay": 'decay',
             "Sustain": 'sustainamp',
             "Release": 'release'
         }
-        
+
         self._choices_fil = {
             "Cutoff": 'cutoff'
         }
-        
+
         self._choices_lfo = {
             "Freq": 'speed',
             "Range": 'amount',
             "Offset": 'offset'
         }
-        
+
         self.w_menu_p = menuwidget.Menu(
             parent=self.w_top,
             label="",
@@ -499,7 +499,7 @@ class LFOPanel(SynthPanel):
             callback=self._set_target_param
         )
         self.w_menu_p.pack(side=RIGHT, fill=X)
-        
+
         self.w_menu_t = menuwidget.Menu(
             parent=self.w_top,
             label="None",
@@ -509,8 +509,8 @@ class LFOPanel(SynthPanel):
                 "Osc2": ('oscil2', self._choices_osc),
                 "Env1": ('env1', self._choices_env),
                 "Env2": ('env2', self._choices_env),
-                "Fil1": ('filt1', self._choices_fil),
-                "Fil2": ('filt2', self._choices_fil),
+                "Fil1": ('fil1', self._choices_fil),
+                "Fil2": ('fil2', self._choices_fil),
                 "LFO1": ('lfo1', self._choices_lfo),
                 "LFO2": ('lfo2', self._choices_lfo),
                 "LFO3": ('lfo3', self._choices_lfo)
@@ -518,7 +518,7 @@ class LFOPanel(SynthPanel):
             callback=self._set_target,
         )
         self.w_menu_t.pack(side=RIGHT, fill=X)
-        
+
         self.target.set_device_control(None, None)
 
 
@@ -533,7 +533,7 @@ class LFOPanel(SynthPanel):
              'dinitial': 0.5,
              'target': 'amount' },
             {'label': "Offset",
-             'dmin': 0, 'dmax': 2,
+             'dmin': -1, 'dmax': 1,
              'dinitial': 0,
              'target': 'offset' },
             {'label': "Waveshape",
@@ -561,24 +561,24 @@ class LFOPanel(SynthPanel):
         ws = ['sin', 'square', 'saw'][idx]
 
         self.target.wavetype = ws
-    
-    
+
+
     def _set_target(self, target):
         ''' Sets the target component for the LFO. '''
         if target[0] is not None:
-            self.lfo_target = self.synth.__dict__[target[0]]
+            self.lfo_target = target[0]
             self.w_menu_p.choices = target[1]
         else:
             self.lfo_target = None
             self.w_menu_p.choices = {}
         self.w_menu_p.set_label("")
-        self.target.set_device_control(None, None)
-    
-    
+        self.target.set_device_control(self.lfo_target, target)
+
+
     def _set_target_param(self, target):
         ''' Sets the target parameter for the LFO. '''
         self.target.set_device_control(self.lfo_target, target)
-    
-    
+
+
     def bind_to_synth(self, synth):
         self.synth = synth

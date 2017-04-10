@@ -153,9 +153,9 @@ class synth:
         self.fil1_past = [0,0]
 
         # Load LFO's
-        self.lfo1 = Synth.LFO.lfo(device=self.oscil, control='detune', speed=1, amount=0.1)
-        self.lfo2 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
-        self.lfo3 = Synth.LFO.lfo(device=None, control=None, speed=1, amount=0)
+        self.lfo1 = Synth.LFO.lfo(self,device=None, control=None, speed=1, amount=0)
+        self.lfo2 = Synth.LFO.lfo(self,device=None, control=None, speed=1, amount=0)
+        self.lfo3 = Synth.LFO.lfo(self,device=None, control=None, speed=1, amount=0)
 
 
     def gen_freq(self, note, osc):

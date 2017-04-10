@@ -10,10 +10,11 @@ class lfo:
     Don't use yet, one that works is in the synth to demonstate
     '''
 
-    def __init__(self, samplerate=44100, device=None, control=None, amount=0.1,offset=-0.5, wavetype='sin', speed=1):
+    def __init__(self, synth, samplerate=44100, device=None, control=None, amount=0.1,offset=-0.5, wavetype='sin', speed=1):
         self.samplerate = samplerate
         self.device = device
         self.control = control
+        self.synth = synth
 
         self.speed = speed
         self.speed_max = 50
@@ -39,6 +40,8 @@ class lfo:
     def set_device_control(self, device, control):
         self.device = device
         self.control = control
+        print(device)
+        print(control)
 
     def get_retrig(self):
         if self.retrig == True:
@@ -95,174 +98,159 @@ class lfo:
 
 
 
-        if isinstance(device, wtOsc):
+        if device == 'oscil' or device == 'oscil2':
             if control == 'wavtable position': #works
                 scale = (scale/2) + 0.5
-                delta = (device.wavetablepos_max*scale)
-                delta = delta - (delta%device.detune_step)
-                print(delta)
+                delta = (self.synth.__dict__[device].wavetablepos_max*scale)
+                delta = delta - (delta%self.synth.__dict__[device].detune_step)
 
-                if device.wavetablepos > device.wavetablepos_max:
-                    device.wavetablepos == device.wavetablepos_max
+                if delta > self.synth.__dict__[device].wavetablepos_max:
+                    self.synth.__dict__[device].wavetablepos == self.synth.__dict__[device].wavetablepos_max
 
-                elif device.wavetablepos < device.wavetablepos_min:
-                    device.wavetablepos == device.wavetablepos_min
+                elif delta < self.synth.__dict__[device].wavetablepos_min:
+                    self.synth.__dict__[device].wavetablepos == self.synth.__dict__[device].wavetablepos_min
 
                 else:
-                    device.wavetablepos = delta
+                    self.synth.__dict__[device].wavetablepos = delta
 
 
             if control == 'detune': #
-                delta = device.detune_max*scale
-                delta = delta - (delta%device.detune_step)
-                print(delta)
-                if device.detune > device.detune_max:
-                    device.detune == device.detune_max
+                delta = self.synth.__dict__[device].detune_max*scale
+                delta = delta - (delta%self.synth.__dict__[device].detune_step)
 
-                elif device.detune < device.detune_min:
-                    device.detune == device.detune_min
+                if delta > self.synth.__dict__[device].detune_max:
+                    self.synth.__dict__[device].detune == self.synth.__dict__[device].detune_max
+
+                elif delta < self.synth.__dict__[device].detune_min:
+                    self.synth.__dict__[device].detune == self.synth.__dict__[device].detune_min
 
                 else:
-                    device.detune = delta
+                    self.synth.__dict__[device].detune = delta
 
-                device.gen_freq()
+                self.synth.__dict__[device].gen_freq()
 
             if control == 'volume': #works
                 scale = (scale/2) + 0.5
-                device.volume = scale
+                self.synth.__dict__[device].volume = scale
 
 
 
-        if isinstance(device, envelope):
+        if device == 'env1' or device == 'env2':
             if control == 'attack': #works
                 scale = (scale/2) + 0.5
-                delta = (device.attack_max*scale)
+                delta = (self.synth.__dict__[device].attack_max*scale)
 
-                if delta > device.attack_max:
-                    device.set_attack(device.attack_max)
+                if delta > self.synth.__dict__[device].attack_max:
+                    self.synth.__dict__[device].set_attack(self.synth.__dict__[device].attack_max)
 
-                if delta < device.attack_min:
-                    device.set_attack(device.attack_min)
+                if delta < self.synth.__dict__[device].attack_min:
+                    self.synth.__dict__[device].set_attack(self.synth.__dict__[device].attack_min)
 
                 else:
-                    device.set_attack(delta)
+                    self.synth.__dict__[device].set_attack(delta)
 
             if control == 'decay': #works
                 scale = (scale/2) + 0.5
-                delta = (device.decay_max*scale)
+                delta = (self.synth.__dict__[device].decay_max*scale)
 
 
-                if delta > device.decay_max:
-                    device.set_decay(device.decay_max)
+                if delta > self.synth.__dict__[device].decay_max:
+                    self.synth.__dict__[device].set_decay(self.synth.__dict__[device].decay_max)
 
-                if delta < device.decay_min:
-                    device.set_decay(device.decay_min)
-
-                else:
-                    device.set_decay(delta)
-
-            if control == 'sustain': #works
-                scale = (scale/2) + 0.5
-                delta = (device.sustain_max*scale)
-
-
-                if delta > device.sustain_max:
-                    device.set_sustain(device.decay_max, device.sustain_amp)
-
-                if delta < device.sustain_min:
-                    device.set_sustain(device.sustain_min, device.sustain_amp)
+                if delta < self.synth.__dict__[device].decay_min:
+                    self.synth.__dict__[device].set_decay(self.synth.__dict__[device].decay_min)
 
                 else:
-                    device.set_sustain(delta, device.sustain_amp)
+                    self.synth.__dict__[device].set_decay(delta)
 
             if control == 'release': #works
                 scale = (scale/2) + 0.5
-                delta = (device.release_max*scale)
+                delta = (self.synth.__dict__[device].release_max*scale)
 
-                if delta > device.release_max:
-                    device.set_release(device.release_max)
+                if delta > self.synth.__dict__[device].release_max:
+                    self.synth.__dict__[device].set_release(self.synth.__dict__[device].release_max)
 
-                if delta < device.sustain_min:
-                    device.set_release(device.release_min)
+                if delta < self.synth.__dict__[device].sustain_min:
+                    self.synth.__dict__[device].set_release(self.synth.__dict__[device].release_min)
 
                 else:
-                    device.set_release(delta)
+                    self.synth.__dict__[device].set_release(delta)
 
             if control == 'sustainamp': #works
                 scale = (scale/2) + 0.5
-                device.set_sustain(device.sustainsamples/device.samplerate, scale)
+                self.synth.__dict__[device].set_sustain(self.synth.__dict__[device].sustainsamples/self.synth.__dict__[device].samplerate, scale)
 
 
-        if isinstance(device, Synth.filt.filter):
+        if device == 'fil1' or device == 'fil2':
 
             if control == 'cutoff':
-                if device.filtertype == 'Low Pass': #works
+                if self.synth.__dict__[device].filtertype == 'Low_Pass':
                     scale = (scale/2) + 0.5
-                    delta = (device.set_cutoff_lowpass_max*scale)
+                    delta = (self.synth.__dict__[device].set_cutoff_lowpass_max*scale)
 
 
-                    if delta > device.set_cutoff_lowpass_max:
-                        device.set_cutoff_lowpass(device.set_cutoff_lowpass_max)
+                    if delta > self.synth.__dict__[device].set_cutoff_lowpass_max:
+                        self.synth.__dict__[device].set_cutoff_lowpass(self.synth.__dict__[device].set_cutoff_lowpass_max)
 
-                    if delta < device.set_cutoff_lowpass_min:
-                        device.set_cutoff_lowpass(device.set_cutoff_lowpass_min)
+                    if delta < self.synth.__dict__[device].set_cutoff_lowpass_min:
+                        self.synth.__dict__[device].set_cutoff_lowpass(self.synth.__dict__[device].set_cutoff_lowpass_min)
 
 
                     else:
-                        device.set_cutoff_lowpass(delta)
+                        self.synth.__dict__[device].set_cutoff_lowpass(delta)
 
-                if device.filtertype == 'High Pass': # Does not work
+                if self.synth.__dict__[device].filtertype == 'High_Pass':
                     scale = (scale/2) + 0.5
-                    delta = (device.set_cutoff_highpass_max*scale)
+                    delta = (self.synth.__dict__[device].set_cutoff_highpass_max*scale)
 
 
-                    if delta > device.set_cutoff_highpass_max:
-                        device.set_cutoff_highpass(device.set_cutoff_highpass_max)
+                    if delta > self.synth.__dict__[device].set_cutoff_highpass_max:
+                        self.synth.__dict__[device].set_cutoff_highpass(self.synth.__dict__[device].set_cutoff_highpass_max)
 
-                    if delta < device.set_cutoff_highpass_max:
-                        device.set_cutoff_highpass(device.set_cutoff_highpass_min)
+                    if delta < self.synth.__dict__[device].set_cutoff_highpass_max:
+                        self.synth.__dict__[device].set_cutoff_highpass(self.synth.__dict__[device].set_cutoff_highpass_min)
 
 
                     else:
-                        device.set_cutoff_highpass(delta)
+                        self.synth.__dict__[device].set_cutoff_highpass(delta)
 
-        if isinstance(device, lfo):
+        if device == 'lfo1' or device == 'lfo2' or device == 'lfo3':
 
             if control == 'speed': # works
                 scale = (scale/2) + 0.5
-                delta = (device.speed_max*scale)
+                delta = (self.synth.__dict__[device].speed_max*scale)
 
-                if delta > device.speed_max:
-                    device.set_speed(device.speed_max)
+                if delta > self.synth.__dict__[device].speed_max:
+                    self.synth.__dict__[device].set_speed(self.synth.__dict__[device].speed_max)
 
-                if delta < device.speed_min:
-                    device.set_speed(device.speed_min)
+                if delta < self.synth.__dict__[device].speed_min:
+                    self.synth.__dict__[device].set_speed(self.synth.__dict__[device].speed_min)
 
                 else:
-                    device.set_speed(delta)
+                    self.synth.__dict__[device].set_speed(delta)
 
             if control == 'amount': #works
                 scale = (scale/2) + 0.5
 
-                if scale > device.amount_max:
-                    device.amount = device.speed_max
+                if scale > self.synth.__dict__[device].amount_max:
+                    self.synth.__dict__[device].amount = self.synth.__dict__[device].speed_max
 
-                if scale < device.amount_min:
-                    device.amount = device.speed_min
+                if scale < self.synth.__dict__[device].amount_min:
+                    self.synth.__dict__[device].amount = self.synth.__dict__[device].speed_min
 
                 else:
-                    device.amount = scale
+                    self.synth.__dict__[device].amount = scale
 
             if control == 'offset': #works
 
-                if scale > device.amount_max:
-                    device.offset = device.offset_max
+                if scale > self.synth.__dict__[device].amount_max:
+                    self.synth.__dict__[device].offset = self.synth.__dict__[device].offset_max
 
-                if scale < device.offset_min:
-                    device.offset = device.offset_min
+                if scale < self.synth.__dict__[device].offset_min:
+                    self.synth.__dict__[device].offset = self.synth.__dict__[device].offset_min
 
                 else:
-                    device.offset = scale
+                    self.synth.__dict__[device].offset = scale
 
 
 

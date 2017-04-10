@@ -20,29 +20,28 @@ class voice:
         self.phase2 = phase2
         self.in_use = False
 
-        self.totsamp = self.notesamp + max([self.release1, self.release2])
 
     def load_note(self, note, time):
         if not note == None:
-            self.freq1 = self.osc1.gen_freq(note)
-            self.freq2 = self.osc2.gen_freq(note)
+            self.note = note
+            self.freq1 = self.osc1.gen_freq(self.note)
+            self.freq2 = self.osc2.gen_freq(self.note)
             self.phase1 = self.osc1.pOffset
             self.phase2 = self.osc2.pOffset
             self.notesamp = self.samplerate * time
             self.curr_sample = 0
-            self.totsamp = self.notesamp + max([self.env1.releasesamples, self.env2.releasesamples])
             self.in_use = True
 
         else:
             pass
 
     def genOutput(self):
-        if self.curr_sample > self.totsamp:
+        if self.curr_sample > self.notesamp:
             self.in_use = False
             return None
         else:
-            self.osc1.freq = self.freq1
-            self.osc2.freq = self.freq2
+            self.osc1.freq = self.osc1.gen_freq(self.note)
+            self.osc2.freq = self.osc2.gen_freq(self.note)
             self.osc1.phase = self.phase1
             self.osc2.phase = self.phase2
             sig1 = self.osc1.genOutput()
@@ -50,8 +49,13 @@ class voice:
             self.phase1 = self.osc1.phase
             self.phase2 = self.osc2.phase
 
-            sus_samples1 = self.notesamp - self.env1.attacksamples - self.env1.decaysamples
-            sus_samples2 = self.notesamp - self.env2.attacksamples - self.env2.decaysamples
+            sus_samples1 = self.notesamp - self.env1.attacksamples - self.env1.decaysamples - self.env1.releasesamples
+            sus_samples2 = self.notesamp - self.env2.attacksamples - self.env2.decaysamples - self.env2.releasesamples
+
+            if sus_samples1 < 0:
+                sus_samples1 = 0
+            if sus_samples2 < 0:
+                sus_samples2 = 0
 
             self.env1.sustainsamples = sus_samples1
             self.env2.sustainsamples = sus_samples2
