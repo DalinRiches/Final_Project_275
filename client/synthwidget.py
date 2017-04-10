@@ -278,7 +278,7 @@ class OscPanel(SynthPanel):
              'valformat': "{:.0%}",
              'target': 'volume' },
             {'label': "Detune",
-             'dmin': -24, 'dmax': 24,
+             'dmin': -24, 'dmax': 24, 'dincrement': 1,
              'dinitial': 0,
              'valformat': "{:+.0f}",
              'target': 'detune' }

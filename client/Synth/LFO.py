@@ -34,7 +34,7 @@ class lfo:
 
         self.wavetype = wavetype
 
-        self.enabled = True
+        self.enable = True
         self.retrig = False
 
     def set_device_control(self, device, control):
@@ -81,7 +81,7 @@ class lfo:
                     None
 
         '''
-        if self.enabled == False:
+        if self.enable == False:
             return
 
         if control == None:

@@ -195,7 +195,7 @@ class synth:
 
 
 
-    def play(self, sequence):
+    def play(self, sequence, slide=False, ard_rec=False):
 
 
         '''
