@@ -133,8 +133,8 @@ class synth:
         self.mixer.setmute(0,0)
 
         # Load osc's
-        self.oscil = Synth.osc.wtOsc(wav='./Synth/Basic Shapes.wav', volume=0.75, pOffset=1024, detune=0, wavetablepos=0, samplerate=self.samplerate)
-        self.oscil2 = Synth.osc.wtOsc(wav='./Synth/Basic Shapes.wav', volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil = Synth.osc.wtOsc(wav='./Synth/wavetables/Basic Shapes.wav', volume=0.75, pOffset=1024, detune=0, wavetablepos=0, samplerate=self.samplerate)
+        self.oscil2 = Synth.osc.wtOsc(wav='./Synth/wavetables/Basic Shapes.wav', volume=0.75, detune=0, wavetablepos=0, samplerate=self.samplerate)
 
         # Load Envolopes
         self.env1 = Synth.envelope.envelope(self.samplerate,0.1,2,1,0.5,2)
@@ -195,7 +195,7 @@ class synth:
 
 
 
-    def play(self, sequence, slide=False, ard_rec=False):
+    def play(self, sequence):
 
 
         '''
@@ -293,60 +293,3 @@ class synth:
 
         for i in samples:
             self.aud.write(np.int16(i))
-
-
-
-
-
-
-if __name__ == "__main__":
-
-    syn = synth();
-    sequence = [[['A',3],1],[[0,0],2],[['G',3],4],[['F',3],4],[['A',3],2],[['G',3],2],[['F',3],0.5],[['A',3],0.5],
-                    [['G',3],1],[['F',3],1]]
-
-    syn.play(sequence)
-
-
-
-# Ignore the following
-
-
-
-
-    '''
-    while (True):
-
-        #reads intial time
-
-
-        output = oscil.genOutput(["A", 4])
-
-        #waits until 45 microseconds have passed,
-        now = datetime.datetime.now()
-        while (now - start) < time_delta:
-            now = datetime.datetime.now()
-        print(now)
-        ser.write(bytes([output]))
-
-        start = datetime.datetime.now()
-
-    ser.close()
-    '''
-    '''
-    def delayMicroseconds(time):
-        start = datetime.datetime.now()
-        time_delta = datetime.timedelta(microseconds=time)
-
-        while(True):
-            now = datetime.datetime.now()
-            if (now - start) >= time_delta:
-                break
-
-    def sendbyte(serial, byte):
-        ser.write(bytes([byte]))
-
-    def logbyte(serial):
-        value = serial.read()
-        print(value)
-    '''

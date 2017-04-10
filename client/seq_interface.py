@@ -41,7 +41,7 @@ class PlaybackController:
     def play(self):
         seq = self.get_sequence()
         print("Rendering...")
-        self.synth.play(seq, slide=True)
+        self.synth.play(seq)
         print("Done.")
         print("Playing...")
 
