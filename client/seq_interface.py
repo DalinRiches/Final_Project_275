@@ -74,7 +74,7 @@ def gen_controlbar(tk, ctrl):
     )
 
     bar_dial.pack(side=LEFT)
-    bar_play.pack(side=LEFT)
+    bar_play.pack(side=LEFT, expand=1)
 
     return bar
 
@@ -89,7 +89,7 @@ def setup(synth):
 
     seq = newseqwidget.Sequencer(
         parent=tk,
-        length=50,
+        length=42,
         height=24,
         firstnoteidx=3*12-1, # (index of C3)
         temposource=ctrl.get_play_speed
@@ -162,11 +162,11 @@ def setup(synth):
     lfoframe.pack(side=TOP)
 
     ctrlbar = gen_controlbar(tk, ctrl)
-    ctrlbar.pack(side=TOP)
+    ctrlbar.pack(side=RIGHT, fill=X, expand=1, anchor=N)
 
     # NOTE seq must be packed last so that if the window runs
     # out of room it loses seq rows, instead of more important
-    # things like oscillator dials.
+    # things like panel components.
     seq.pack(side=BOTTOM)
 
     return tk

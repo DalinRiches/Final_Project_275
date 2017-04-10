@@ -82,8 +82,8 @@ class SynthPanel:
             command=self._toggle_enabled
         )
 
-        self.w_toggle.pack(side=LEFT, padx=4)
-        self.w_label.pack(side=LEFT, fill=BOTH, padx=1)
+        self.w_toggle.pack(side=LEFT, padx=1)
+        self.w_label.pack(side=LEFT, fill=BOTH, padx=4)
 
         # graph screen (if enabled)
         if self._has_graph:
@@ -94,7 +94,7 @@ class SynthPanel:
                 fx=self._graph_fx
             )
 
-            self.w_graph.pack(side=TOP, padx=4)
+            self.w_graph.pack(side=TOP, padx=1)
 
         # set up subclass-specific items
         self._special_init()
@@ -264,6 +264,19 @@ class OscPanel(SynthPanel):
     _label = "Oscillator"
 
 
+    def _special_init(self):
+        ''' Adds a wavetable selector menu. '''
+        self.w_menu = menuwidget.Menu(
+            parent=self.w_top,
+            title="Wavetable File",
+            # label=self.target.wt_name,
+            initial="???",
+            choices=self._get_wavetables(),
+            callback=self._set_wavetable
+        )
+        self.w_menu.pack(side=RIGHT, fill=X)
+
+
     def _dials(self):
         return [
             {'label': "Waveshape",
@@ -307,18 +320,28 @@ class OscPanel(SynthPanel):
         self.target.wavetablepos = int(value + 0.001) * self.target.wavetsize
 
 
+    def _get_wavetables(self):
+        ''' Looks up the available wavetables. '''
+        
+        import pathlib
+        here = pathlib.Path('./Synth/wavetables')
+        
+        return {
+            str(path.parts[-1]) : str(path)
+            for path in here.glob('*.wav')
+        }
+
+
+    def _set_wavetable(self, value):
+        ''' Sets the wavetable of the underlying oscillator. '''
+        
+        self.target.set_wavetable(value)
+
+
 class EnvPanel(SynthPanel):
     ''' SynthPanel for an Envelope component. '''
 
     _label = "Envelope"
-
-
-    def _special_init(self):
-        # just to make the graph look nice
-        # (sustainsamples isn't used by the actual envelope generator,
-        # but it is used by the non-time-scaled generator which is used
-        # to draw the graph.)
-        self.target.sustainsamples = 0.25 * self.target.samplerate
 
 
     def _dials(self):
@@ -351,6 +374,11 @@ class EnvPanel(SynthPanel):
         ''' Checks the non-time-scaled envelope response for
         each moment in time. This doesn't necessarily correspond
         to the actual envelope shape, but it should. '''
+
+        # set a representative note length. this makes the graph
+        # look better and should be overwritten before any notes
+        # are actually played.
+        self.target.sustainsamples = 0.25 * self.target.samplerate
 
         # converts x in (0, width) to time domain for a scale of 1
         t = ((1 * x / PANEL_GS_WIDTH) * self.target.samplerate)
@@ -408,6 +436,9 @@ class FiltPanel(SynthPanel):
             self.w_band.config(text=" LOW", bg="blue")
             self.band = "Low Pass"
             self._log_set_cutoff(self._last_value, None)
+
+        # redraw graph
+        self.redraw()
 
 
     def _dials(self):
@@ -469,6 +500,8 @@ class LFOPanel(SynthPanel):
 
 
     def _special_init(self):
+        ''' Sets up device and parameter menus and
+        ret/con toggle button. '''
         self._choices_osc = {
             "Frame": 'wavtable position',
             "Detune": 'detune',
@@ -494,7 +527,8 @@ class LFOPanel(SynthPanel):
 
         self.w_menu_p = menuwidget.Menu(
             parent=self.w_top,
-            label="",
+            title="Parameter",
+            initial="",
             choices={},
             callback=self._set_target_param
         )
@@ -502,7 +536,8 @@ class LFOPanel(SynthPanel):
 
         self.w_menu_t = menuwidget.Menu(
             parent=self.w_top,
-            label="None",
+            title="Device",
+            initial="None",
             choices={
                 "None": (None, None),
                 "Osc1": ('oscil', self._choices_osc),
@@ -519,7 +554,21 @@ class LFOPanel(SynthPanel):
         )
         self.w_menu_t.pack(side=RIGHT, fill=X)
 
+
+        # ret/con toggle
+        self.ret_enabled = True
+        self.w_ret = tkinter.Button(
+            self.w_bot,
+            text="###",
+            justify=CENTER,
+            font=PANEL_FONT+" 9",
+            command=self._toggle_retrig
+        )
+        self.w_ret.pack(side=RIGHT, fill=X, padx=3)
+
+
         self.target.set_device_control(None, None)
+        self._toggle_retrig()
 
 
     def _dials(self):
@@ -578,6 +627,18 @@ class LFOPanel(SynthPanel):
     def _set_target_param(self, target):
         ''' Sets the target parameter for the LFO. '''
         self.target.set_device_control(self.lfo_target, target)
+
+
+    def _toggle_retrig(self):
+        ''' Toggles retrig/continuity for the LFO. '''
+
+        if self.ret_enabled:
+            self.w_ret.config(text="Cnt", bg="purple")
+        else:
+            self.w_ret.config(text="Ret", bg="magenta")
+
+        self.ret_enabled = not self.ret_enabled
+        self.target.retrig = self.ret_enabled
 
 
     def bind_to_synth(self, synth):
