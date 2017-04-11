@@ -266,15 +266,19 @@ class OscPanel(SynthPanel):
 
     def _special_init(self):
         ''' Adds a wavetable selector menu. '''
+        
+        wts = self._get_wavetables()
+        initial = list(wts.items())[0]
+        
         self.w_menu = menuwidget.Menu(
             parent=self.w_top,
             title="Wavetable File",
-            # label=self.target.wt_name,
-            initial="???",
+            initial=initial[0],
             choices=self._get_wavetables(),
             callback=self._set_wavetable
         )
         self.w_menu.pack(side=RIGHT, fill=X)
+        self._set_wavetable(initial[1])
 
 
     def _dials(self):
