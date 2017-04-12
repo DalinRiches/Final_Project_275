@@ -24,7 +24,6 @@ class PlaybackController:
     def get_sequence(self):
         print("Getting sequence...")
         seq = self.seqsource()
-        print(seq)
         return seq
 
 

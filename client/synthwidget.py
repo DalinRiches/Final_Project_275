@@ -280,7 +280,7 @@ class OscPanel(SynthPanel):
     def _dials(self):
         return [
             {'label': "Waveshape",
-             'dmin': 0, 'dmax': 6, 'dincrement': 1,
+             'dmin': 0, 'dmax': self.target.wave_tables_num, 'dincrement': 1,
              'dinitial': 0,
              'valformat': "[{:.0f}]",
              'callback': self._set_waveshape,
@@ -322,10 +322,10 @@ class OscPanel(SynthPanel):
 
     def _get_wavetables(self):
         ''' Looks up the available wavetables. '''
-        
+
         import pathlib
         here = pathlib.Path('./Synth/wavetables')
-        
+
         return {
             str(path.parts[-1]) : str(path)
             for path in here.glob('*.wav')
@@ -334,7 +334,7 @@ class OscPanel(SynthPanel):
 
     def _set_wavetable(self, value):
         ''' Sets the wavetable of the underlying oscillator. '''
-        
+
         self.target.set_wavetable(value)
 
 
@@ -347,7 +347,7 @@ class EnvPanel(SynthPanel):
     def _dials(self):
         return [
             {'label': "Attack",
-             'dmin': 0, 'dmax': 1,
+             'dmin': 0.001, 'dmax': 1,
              'dinitial': 0.07,
              'callback': self.target.set_attack,
              'update_graph': True },
@@ -363,7 +363,7 @@ class EnvPanel(SynthPanel):
              'callback': self._set_sustain,
              'update_graph': True },
             {'label': "Release",
-             'dmin': 0, 'dmax': 1,
+             'dmin': 0.001, 'dmax': 1,
              'dinitial': 0.1,
              'callback': self.target.set_release,
              'update_graph': True }

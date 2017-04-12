@@ -40,8 +40,7 @@ class lfo:
     def set_device_control(self, device, control):
         self.device = device
         self.control = control
-        print(device)
-        print(control)
+
 
     def get_retrig(self):
         if self.retrig == True:
@@ -87,8 +86,6 @@ class lfo:
         if control == None:
             return
 
-        self.get_retrig()
-
         scale = self.genOutput()
 
         if scale > 1:
@@ -116,7 +113,6 @@ class lfo:
 
             if control == 'detune': #
                 delta = self.synth.__dict__[device].detune_max*scale
-                delta = delta - (delta%self.synth.__dict__[device].detune_step)
 
                 if delta > self.synth.__dict__[device].detune_max:
                     self.synth.__dict__[device].detune == self.synth.__dict__[device].detune_max
@@ -270,9 +266,9 @@ class lfo:
             return scale
 
         elif self.wavetype == 'square':
-            if phase <= math.pi:
+            if self.phase <= math.pi:
                 scale = self.offset
-            elif phase > math.pi:
+            elif self.phase > math.pi:
                 scale = self.amount + self.offset
             return scale
 

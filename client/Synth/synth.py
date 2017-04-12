@@ -228,11 +228,6 @@ class synth:
             time = i[1]
             notesamp = []
 
-            '''
-            if not note == None:
-                for i in self.voices:
-                    i.in_use = False
-            '''
 
             for j in self.voices:
                 if j.in_use == False:
@@ -241,8 +236,14 @@ class synth:
                     totalsamples += numsamples
                     break
 
+            self.lfo1.get_retrig()
+            self.lfo2.get_retrig()
+            self.lfo3.get_retrig()
 
             count = 0
+            if not note == None:
+                print('Rendering {} {}'.format(note[0],note[1]))
+
             while count < numsamples:
                 # This is the order the synth will run
 
