@@ -4,7 +4,7 @@ from tkinter.constants import *
 class _MenuItem:
     ''' Internal class representing a single item of a Menu. Creates
     a Button widget that calls the callback function when pressed.
-    
+
     Parameters:
         parent: (Widget) tk-style parent widget. Should be a Menu
             window in regular usage.
@@ -12,7 +12,7 @@ class _MenuItem:
         callback: (function) will be called when the button is pressed,
             passing the button's label.
     '''
-    
+
     def __init__(self, parent, label, callback):
         ''' Initializer for _MenuItem. Creates a button. '''
 
@@ -43,7 +43,7 @@ class _MenuItem:
 class Menu:
     ''' This class creates a button which opens a menu when clicked.
     It's basically a drop-down menu without the drop-down part.
-    
+
     Parameters:
         parent: (Widget) tk-style parent widget
         title: (str) title of the menu, will appear in the menu window
@@ -62,14 +62,14 @@ class Menu:
     def __init__(self, parent, title, initial, callback, choices):
         ''' Initializer for Menu. Creates the button widget; the
         actual menu is instantiated when clicked (see Menu._invoke). '''
-        
+
         # regular data
         self.parent = parent
         self.title = title
         self.label = initial
         self.choices = choices
         self.callback = callback
-        
+
         # toggles when the menu is opened
         self._menu_is_open = False
 
@@ -100,13 +100,13 @@ class Menu:
         anything. Just updates the state. '''
         self._menu_is_open = False
 
-    
+
     def _invoke(self):
         ''' Called when the menu is opened. Creates a new window to
         hold the menu buttons. If the menu is already open, closes
         it instead by selecting None. (This will not invoke the
         callback.) '''
-        
+
         # close menu if it is open
         if self._menu_is_open:
             self._select_item(None)

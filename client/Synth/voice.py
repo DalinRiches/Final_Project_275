@@ -4,7 +4,8 @@ import math
 
 class voice:
 
-    def __init__(self, osc1, osc2, env1, env2, notetime=0, freq1=0, phase1=0, freq2=0, phase2=0, samplerate=44100):
+    def __init__(self, osc1, osc2, env1, env2, notetime=0, freq1=0,
+                 phase1=0, freq2=0, phase2=0, samplerate=44100):
         self.samplerate = samplerate
         self.osc1 = osc1
         self.osc2 = osc2
@@ -49,8 +50,18 @@ class voice:
             self.phase1 = self.osc1.phase
             self.phase2 = self.osc2.phase
 
-            sus_samples1 = self.notesamp - self.env1.attacksamples - self.env1.decaysamples - self.env1.releasesamples
-            sus_samples2 = self.notesamp - self.env2.attacksamples - self.env2.decaysamples - self.env2.releasesamples
+            sus_samples1 = (
+                self.notesamp
+                - self.env1.attacksamples
+                - self.env1.decaysamples
+                - self.env1.releasesamples
+            )
+            sus_samples2 = (
+                self.notesamp
+                - self.env2.attacksamples
+                - self.env2.decaysamples
+                - self.env2.releasesamples
+            )
 
             if sus_samples1 < 0:
                 sus_samples1 = 0

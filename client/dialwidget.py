@@ -5,7 +5,7 @@ from tkinter.constants import *
 class Dial:
     ''' A visual dial for entering numerical values. Can be rotated
     by clicking and dragging and reset by double-clicking.
-    
+
     Parameters:
         parent: (Widget) tk-style parent widget.
         dmin: (float) minimum value the dial can be set to.
@@ -43,17 +43,17 @@ class Dial:
         display the dial body and labels, and binds mouse events to
         allow the dial to be interacted with. For parameters see
         class documentation. '''
-        
+
         # Basic parameters: minimum, maximum, initial values and formatters
         self.dmin = dmin
         self.dmax = dmax
         self.dinitial = dinitial
         self.valformat = valformat
         self.valcallback = valcallback
-        
+
         # Text: main label, min value text, max value text
         self.label = label
-        
+
         # If no min/max labels specified, use formatted values
         if dmintext is None:
             self.dmintext = self._format(self.dmin)
@@ -63,11 +63,11 @@ class Dial:
             self.dmaxtext = self._format(self.dmax)
         else:
             self.dmaxtext = dmaxtext
-        
+
         # Current value and mouse-click state
         self.value = dinitial
         self.dragging = False
-        
+
         # Increment - calculate increment angle as well
         if dincrement is not None:
             from math import pi
@@ -76,10 +76,10 @@ class Dial:
         else:
             self.incr = None
             self.incr_angle = None
-        
+
         # Callback - function to call when value changes
         self.callback = callback
-        
+
         # Create encapsulated widget
         self.widget = tkinter.Canvas(
             parent,
@@ -87,7 +87,7 @@ class Dial:
             height=50,
             relief=FLAT
         )
-        
+
         # Subitems of widget:
         # Main text label
         self.wd_label = self.widget.create_text(
@@ -142,132 +142,132 @@ class Dial:
         self.widget.bind('<Double-Button-1>', self.mouse_dbl)
         self.widget.bind('<Motion>', self.mouse_handle)
         self.widget.bind('<ButtonRelease-1>', self.mouse_up)
-        
+
         # Dial pointer
         self.wd_indic = self.widget.create_line(
             25, 30-15,
             25, 30-10,
             fill="white"
         )
-        
+
         # Initialize pointer location and callback
         self.set_value_by_angle(self.val_to_angle(dinitial))
-    
-    
+
+
     def angle_to_val(self, angle):
         ''' Converts an angle in radians to a dial value. '''
-        
+
         # converting (-3pi/4) <--> (3pi/4) to (MIN) <--> (MAX)
         from math import pi
-        
+
         value = ((angle * (self.dmax - self.dmin) * 4 / (3 * pi))
                 + self.dmax + self.dmin) / 2
         return value
-    
-    
+
+
     def val_to_angle(self, value):
         ''' Converts a dial value to an angle in radians. '''
-        
+
         # converting (MIN) <--> (MAX) to (-3pi/4) <--> (3pi/4)
         from math import pi
-        
+
         angle = ((3 * pi * (2 * value - (self.dmax + self.dmin)))
                 / (4 * (self.dmax - self.dmin)))
         return angle
-    
-    
+
+
     def set_value_by_angle(self, angle):
         ''' Sets the dial to point to a specific angle and updates
         the value accordingly. The callback function will be invoked
         and the current-value label will be updated. '''
-        
+
         from math import sin, cos, pi
-        
+
         # coordinates of the pointer from 0, 0
         xr = cos(angle - (pi/2))
         yr = sin(angle - (pi/2))
-        
+
         # coordinates transformed to dial-body space
         x1 = 25 + (15 * xr)
         y1 = 30 + (15 * yr)
         x2 = 25 + (5 * xr)
         y2 = 30 + (5 * yr)
-        
+
         # move dial pointer
         self.widget.coords(self.wd_indic, x1, y1, x2, y2)
-        
+
         # update value
         self.value = self.angle_to_val(angle)
-        
+
         # update label and invoke callback
         self.widget.itemconfigure(
             self.wd_vallabel,
             text=self._format(self.value)
         )
         self._callback(self.value, self.label)
-    
-    
+
+
     def _callback(self, value, label):
         ''' Invokes the callback function. If the function has
         two arguments it will be passed (self, value); if it has
         three it will be passed (self, value, label). '''
-        
+
         # this retrieves the number of arguments in the callback signature
         argc = self.callback.__code__.co_argcount
-        
+
         if argc == 3:
             self.callback(value, label)
         elif argc == 2:
             self.callback(value)
         else:
             raise RuntimeError("Invalid callback signature in dial")
-    
-    
+
+
     def _format(self, value):
         ''' Converts a value to a string based on the dial's
         format callback, if it exists, else the dials format string;
         if neither exists uses a default format string. '''
-        
+
         if self.valcallback is not None:
             return self.valcallback(value)
         elif self.valformat is not None:
             return self.valformat.format(value)
         else:
             return "{:.1f}".format(value)
-    
-    
+
+
     def mouse_dbl(self, ev):
         ''' Double-click handler: resets the dial to its initial value '''
         self.set_value_by_angle(self.val_to_angle(self.dinitial))
-    
-    
+
+
     def mouse_down(self, ev):
         ''' Click handler: sets mouse state. Nothing interesting
         happens until the mouse is moved. '''
         self.dragging = True
-    
-    
+
+
     def mouse_up(self, ev):
         ''' Release handler: sets mouse state. '''
         self.dragging = False
-    
-    
+
+
     def mouse_handle(self, ev):
         ''' Move handler: if dragging, rotate the dial to point
         towards the cursor. '''
-        
+
         if self.dragging:
             from math import atan2, pi
-            
+
             # angle between the dial center (30, 25) and the cursor,
             # transformed so that 0 is vertically upwards.
             angle = atan2(ev.y - 30, ev.x - 25) + (pi/2)
             if angle > pi:
                 angle -= 2*pi
-            
+
             # limit angle to the minimum and maximum
             angle = min(3*pi/4, max(angle, -3*pi/4))
-            
+
             # apply increment by rounding to nearest multiple
             if self.incr_angle is not None:
                 angle = (
@@ -277,11 +277,11 @@ class Dial:
                     ) * self.incr_angle
                     - (3*pi/4)
                 )
-            
+
             # update value and callback etc.
             self.set_value_by_angle(angle)
-    
-    
+
+
     def pack(self, **kwargs):
         ''' Packs the underlying widget. '''
         self.widget.pack(**kwargs)

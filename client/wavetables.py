@@ -1,1 +1,0 @@
-../synth/wavetables.py

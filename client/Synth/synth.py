@@ -297,5 +297,7 @@ class synth:
         totalsamples = math.floor(totalsamples)
         self.aud.setperiodsize((totalsamples*2))
 
+        print("Playing...")
+
         for i in samples:
             self.aud.write(np.int16(i))
