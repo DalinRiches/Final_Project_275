@@ -217,7 +217,8 @@ class synth:
                     None
         '''
         totaltime = 0
-
+        note_count = 1
+        total_notes = len(sequence)
         totalsamples = 0
         samples = []
         for i in self.voices:
@@ -242,7 +243,11 @@ class synth:
 
             count = 0
             if not note == None:
-                print('Rendering {} {}'.format(note[0],note[1]))
+                print('Rendering {} {}. ({}/{})'.format(note[0],note[1], note_count, total_notes))
+            else:
+                print('Rendering rest. ({}/{})'.format(note_count,total_notes))
+
+            note_count += 1
 
             while count < numsamples:
                 # This is the order the synth will run
