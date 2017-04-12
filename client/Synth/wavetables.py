@@ -35,8 +35,9 @@ class wavetable:
                 wav: the location of the file to be parsed
 
             Returns:
-                a list of signed 16 bytes in Little Endian form corresponding to
-                a wavetable with n frames(n wavetable positions) of 2048 samples
+                a list of signed 16 bytes in Little Endian form corresponding
+                to a wavetable with n frames(n wavetable positions) of 2048
+                samples
                     The list is of length n*2048
         '''
         if wav == None:

@@ -6,21 +6,25 @@ class envelope:
         the amount of time that has 'passed'
 
             Args:
-                samplerate: int, corresponding to Hz
-
-                attack: float, corresponding to seconds
-
-                decay: float, corresponding to seconds
-
-                sustain: float, corresponding to seconds
-
-                release: float, corresponding to seconds, zero by default, not implemented
+                samplerate: (int) corresponding to Hz, the sample rate
+                    of the input stream, used to scale times
+                attack: (float) corresponding to seconds, initial setting
+                    for attack time
+                decay: (float) corresponding to seconds, initial setting
+                    for decay time
+                sustain: (float) corresponding to seconds, initial setting
+                    for sustain time
+                sustain_amp (float) corresponding to amplitude, initial
+                    setting for sustain amplitude
+                release: (float) corresponding to seconds, initial
+                    setting for release time
 
             Returns:
                 nothing
     '''
 
-    def __init__(self, samplerate, attack, decay, sustain, sustain_amp, release):
+    def __init__(self, samplerate, attack, decay,
+                 sustain, sustain_amp, release):
         self.attacksamples = attack * samplerate
         self.decaysamples = decay * samplerate
         self.sustainsamples = sustain * samplerate
@@ -47,47 +51,80 @@ class envelope:
         self.release_max = 5
 
 
-
-
     def set_attack(self, time):
         self.attacksamples = time * self.samplerate
+
 
     def set_decay(self, time):
         self.decaysamples = time * self.samplerate
 
-    def set_sustain(self, time, amp):
+
+    def set_sustain(self, amp):
         self.sustain_amp = amp
+
 
     def set_release(self, time):
         self.releasesamples = time * self.samplerate
+
 
     def gen_env(self, curr_sample, inp):
         '''
         This function outputs the scaling factor based on the current sample
             Args:
-                curr_sample: int, corresponding to the current sample number being processed
-                inp:    float, corresponding to an input audio stream
+                curr_sample: (int) corresponding to the current sample number
+                    being processed
+                inp: (float) corresponding to an input audio stream
             Returns:
-                float, corresponding to the scaled suadio stream
+                (float) corresponding to the scaled audio stream
         '''
         if self.enable == False:
             return inp
 
+        # attack curve
         if curr_sample < self.attacksamples and not self.attacksamples == 0:
             return (curr_sample/self.attacksamples) * inp
 
-        elif ((curr_sample - self.attacksamples) < self.decaysamples) and not self.decaysamples == 0:
-            return (((self.sustain_amp - 1)/self.decaysamples)*(curr_sample - self.attacksamples) + 1) * inp
+        # decay curve
+        elif ((curr_sample - self.attacksamples) < self.decaysamples)
+            and not self.decaysamples == 0:
+                return (
+                    (
+                        ((self.sustain_amp - 1)/self.decaysamples)
+                        * (curr_sample - self.attacksamples) + 1
+                    ) * inp
+                )
 
-        elif (curr_sample - self.decaysamples - self.attacksamples) < self.sustainsamples:
-            return self.sustain_amp * inp
+        # sustain curve
+        elif ((curr_sample - self.decaysamples - self.attacksamples)
+                < self.sustainsamples):
+                    return self.sustain_amp * inp
 
-        elif (curr_sample - self.decaysamples - self.attacksamples - self.sustainsamples) <= self.releasesamples and not self.releasesamples == 0:
-            sample = (curr_sample - self.decaysamples - self.attacksamples - self.sustainsamples)
-            return ((-self.sustain_amp/self.releasesamples)*sample + self.sustain_amp) * inp
+        # release curve
+        elif (
+                (
+                    curr_sample
+                    - self.decaysamples
+                    - self.attacksamples
+                    - self.sustainsamples
+                ) <= self.releasesamples and not self.releasesamples == 0
+            ):
+                sample = (
+                    curr_sample
+                    - self.decaysamples
+                    - self.attacksamples
+                    - self.sustainsamples
+                )
+                return (
+                    (
+                        (-self.sustain_amp/self.releasesamples)*sample
+                        + self.sustain_amp
+                    ) * inp
+                )
 
+        # after envelope
         else:
             return 0
+
 
     def gen_env_graph(self, curr_sample, inp):
         '''
