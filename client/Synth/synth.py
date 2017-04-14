@@ -284,7 +284,6 @@ class synth:
             self.lfo3.get_retrig()
 
             count = 0
-
             if not note == None:
                 print('Rendering {} {}. ({}/{})'.format(
                     note[0],note[1], note_count, total_notes
@@ -312,10 +311,19 @@ class synth:
                             tot += out[0]
                             sig_count += out[1]
 
+
+                # Limits the feed, if tot > 100% volume clip it to 100%
+                if tot > 32767:
+                    tot = 32767
+                elif tot < -32768:
+                    tot = -32768
+
+                output = tot
                 del self.mix_past[0]
-                self.mix_past.append(tot)
+                self.mix_past.append(output)
 
                 # Feeds into the filter's
+
                 self.fil1_past.append(self.fil1.generate_output(self.mix_past))
                 del self.fil1_past[0]
                 output = self.fil2.generate_output(self.fil1_past)

@@ -85,8 +85,8 @@ class envelope:
             return (curr_sample/self.attacksamples) * inp
 
         # decay curve
-        elif ((curr_sample - self.attacksamples) < self.decaysamples)
-            and not self.decaysamples == 0:
+        elif (((curr_sample - self.attacksamples) < self.decaysamples)
+            and not self.decaysamples == 0):
                 return (
                     (
                         ((self.sustain_amp - 1)/self.decaysamples)
