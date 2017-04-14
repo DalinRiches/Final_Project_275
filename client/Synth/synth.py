@@ -370,8 +370,12 @@ class synth:
                     wav.writeframes(np.int16(i))
 
 
+        try:
 
-        if self.playback == True:
-            print("Playing...")
-            for i in samples:
-                self.aud.write(np.int16(i))
+            if self.playback == True:
+                print("Playing...")
+                for i in samples:
+                    self.aud.write(np.int16(i))
+
+        except:
+            pass
