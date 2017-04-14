@@ -88,7 +88,7 @@ class Dial:
             relief=FLAT,
             bg="black",
             bd=0,
-
+            highlightthickness=0,
         )
 
         # Subitems of widget:
@@ -98,7 +98,7 @@ class Dial:
             justify="center",
             fill="white",
             font="Fixed 6",
-            text=label
+            text=label,
         )
         # Min value label
         self.wd_minlabel = self.widget.create_text(
@@ -106,7 +106,8 @@ class Dial:
             justify="right",
             fill="white",
             font="Fixed 4",
-            text=self.dmintext
+            text=self.dmintext,
+
         )
         # Max value label
         self.wd_maxlabel = self.widget.create_text(
@@ -114,7 +115,7 @@ class Dial:
             justify="left",
             fill="white",
             font="Fixed 4",
-            text=self.dmaxtext
+            text=self.dmaxtext,
         )
         # Dial body
         self.wd_circle = self.widget.create_oval(
@@ -122,22 +123,22 @@ class Dial:
             25+15, 30+15,
             outline="white",
             fill="white",
-            stipple="gray25"
+            stipple="gray25",
         )
         # Current value box
         self.wd_valbox = self.widget.create_rectangle(
             25-9, 30+15+3-5,
             25+8, 30+15+3+3,
+            fill="black",
             outline="white",
-            fill="black"
         )
         # Current value label
         self.wd_vallabel = self.widget.create_text(
             25, 30+15+3,
             justify="center",
-            fill="white",
             font="Fixed 4",
-            text="###"
+            text="###",
+            fill="white"
         )
         # Dial body events: click/move/release to change,
         # double-click to reset

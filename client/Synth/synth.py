@@ -1,14 +1,19 @@
 import numpy as np
+import os
 import serial
 import Synth.LFO
 import Synth.osc
 import Synth.wavetables
-import alsaaudio
+try:
+    import alsaaudio
+except:
+    print('Alsa Audio not found.')
 import math
 import time
 import Synth.envelope
 import Synth.filt
 import Synth.voice
+import wave
 
 
 class synth:
@@ -124,14 +129,22 @@ class synth:
         self.ard_ex = False
         self.volume = volume
         self.feed = list()
+        self.record = False
+        self.playback = True
 
         # Open audio channel
-        self.aud = alsaaudio.PCM()
-        self.aud.setchannels(1)
-        self.aud.setrate(self.samplerate)
-        self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-        self.mixer = alsaaudio.Mixer()
-        self.mixer.setmute(0,0)
+        try:
+            self.aud = alsaaudio.PCM()
+            self.aud.setchannels(1)
+            self.aud.setrate(self.samplerate)
+            self.aud.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+            self.mixer = alsaaudio.Mixer()
+            self.mixer.setmute(0,0)
+
+        except:
+            print('Could not open audio channel.')
+            print('Defaulting to record.')
+            self.record = True
 
         # Load oscs
         self.oscil = Synth.osc.wtOsc(
@@ -341,7 +354,24 @@ class synth:
         totalsamples = math.floor(totalsamples)
         self.aud.setperiodsize((totalsamples*2))
 
-        print("Playing...")
 
-        for i in samples:
-            self.aud.write(np.int16(i))
+        if self.record == True:
+            print('Recording to output.wav...')
+            if os.path.exists('output.wav'):
+                os.remove('output.wav')
+
+            with wave.open('output.wav', mode='wb') as wav:
+                wav.setnchannels(1)
+                wav.setsampwidth(2)
+                wav.setframerate(44100)
+                wav.setnframes(len(samples))
+
+                for i in samples:
+                    wav.writeframes(np.int16(i))
+
+
+
+        if self.playback == True:
+            print("Playing...")
+            for i in samples:
+                self.aud.write(np.int16(i))

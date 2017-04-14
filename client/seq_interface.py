@@ -46,8 +46,8 @@ class PlaybackController:
         return self._play_speed
 
 
-    def play(self):
-        ''' Invokes the synthesizer to play the sequence available
+    def start(self):
+        ''' Invokes the synthesizer to start rendering the sequence available
         in seqsource. '''
         seq = self.get_sequence()
         print("Rendering...")
@@ -56,53 +56,91 @@ class PlaybackController:
 
 
     def record(self):
-        ''' Like self.play, but invokes synth.record. '''
-        seq = self.get_sequence()
-        print("Rendering...")
-        self.synth.record(seq)
-        print("Done recording.")
+        '''Sets synth.record. '''
+        self.synth.record = not(self.synth.record)
+        i=['De-activated','Activated']
+        print("Recording is now: {}".format(i[self.synth.record]))
+
+    def playback(self):
+        '''Sets synth.playback'''
+        self.synth.playback = not(self.synth.playback)
+        i=['De-activated','Activated']
+        print("Recording is now: {}".format(i[self.synth.playback]))
 
 
 def gen_controlbar(tk, ctrl):
     ''' Creates the main playback control bar, with a Play button
     and a speed (reciprocal tempo) dial. '''
-
-    bar = tkinter.Frame(
+    panel = tkinter.Frame(
         tk,
-        bd=2,
         relief=RAISED,
-        bg="black"
+        bg="black",
+        bd=0,
+        highlightthickness=0,
     )
 
-    bar_dial = dialwidget.Dial(
-        bar,
+    bar1 = tkinter.Frame(
+        panel,
+        relief=RAISED,
+        bg="black",
+        bd=0,
+        highlightthickness=0,
+    )
+
+    bar1_dial = dialwidget.Dial(
+        bar1,
         label="Speed",
         dmin=0.2, dmax=2.0,
         dinitial=0.5,
         callback=ctrl.set_play_speed
     )
 
-    bar_play = tkinter.Button(
-        bar,
+    bar1_render = tkinter.Button(
+        bar1,
         bg="green",
-        text="Play",
+        text="Render",
         font="Fixed 9",
-        command=ctrl.play
+        command=ctrl.start,
+        bd=1,
+        highlightthickness=0,
+    )
+    bar2 = tkinter.Frame(
+        panel,
+        relief=RAISED,
+        bg="black",
+        bd=0,
+        highlightthickness=0,
     )
 
-    bar_rec = tkinter.Button(
-        bar,
+    bar2_rec = tkinter.Button(
+        bar2,
         bg="gray50",
         text="Record",
         font="Fixed 9",
-        command=ctrl.record
+        command=ctrl.record,
+        bd=1,
+        highlightthickness=0,
     )
 
-    bar_rec.pack(side=BOTTOM, expand=1)
-    bar_dial.pack(side=LEFT)
-    bar_play.pack(side=LEFT, expand=1, pady=3)
+    bar2_play = tkinter.Button(
+        bar2,
+        bg="gray50",
+        text="Playback",
+        font="Fixed 9",
+        command=ctrl.playback,
+        bd=1,
+        highlightthickness=0,
+    )
 
-    return bar
+
+    bar1_dial.pack(side=LEFT, pady=3, padx=3)
+    bar1_render.pack(side=LEFT, expand=1, pady=3,padx=3)
+    bar2_play.pack(side=BOTTOM, expand=1,pady=3,padx=3)
+    bar2_rec.pack(side=BOTTOM, expand=1,pady=3,padx=3)
+    bar1.pack(side=BOTTOM, expand=1)
+    bar2.pack(side=BOTTOM, expand=1)
+
+    return panel
 
 
 def setup(synth):
@@ -137,20 +175,20 @@ def setup(synth):
 
     osc1ct = synthwidgets.OscPanel(
         parent=oscframe,
-        target=synth.oscil
+        target=synth.oscil,
     )
     osc2ct = synthwidgets.OscPanel(
         parent=oscframe,
-        target=synth.oscil2
+        target=synth.oscil2,
     )
     filt1ct = synthwidgets.FiltPanel(
         parent=oscframe,
-        target=synth.fil1
+        target=synth.fil1,
     )
 
-    osc1ct.pack(side=LEFT, fill=X)
-    osc2ct.pack(side=LEFT, fill=X)
-    filt1ct.pack(side=LEFT, fill=X)
+    osc1ct.pack(side=LEFT, fill=X, padx=5, pady=5)
+    osc2ct.pack(side=LEFT, fill=X, padx=5, pady=5)
+    filt1ct.pack(side=LEFT, fill=X, padx=5, pady=5)
     oscframe.pack(side=TOP)
 
 
@@ -170,9 +208,9 @@ def setup(synth):
         target=synth.fil2
     )
 
-    env1ct.pack(side=LEFT, fill=X)
-    env2ct.pack(side=LEFT, fill=X)
-    filt2ct.pack(side=LEFT, fill=X)
+    env1ct.pack(side=LEFT, fill=X, padx=5, pady=5)
+    env2ct.pack(side=LEFT, fill=X, padx=5, pady=5)
+    filt2ct.pack(side=LEFT, fill=X, padx=5, pady=5)
     envframe.pack(side=TOP)
 
 
@@ -196,9 +234,9 @@ def setup(synth):
     lfo2ct.bind_to_synth(synth)
     lfo3ct.bind_to_synth(synth)
 
-    lfo1ct.pack(side=LEFT, fill=X)
-    lfo2ct.pack(side=LEFT, fill=X)
-    lfo3ct.pack(side=LEFT, fill=X)
+    lfo1ct.pack(side=LEFT, fill=X, padx=5, pady=5)
+    lfo2ct.pack(side=LEFT, fill=X, padx=5, pady=5)
+    lfo3ct.pack(side=LEFT, fill=X, padx=5, pady=5)
     lfoframe.pack(side=TOP)
 
 
@@ -210,7 +248,7 @@ def setup(synth):
     # NOTE seq must be packed last so that if the window runs
     # out of room it loses seq rows, instead of more important
     # things like panel components.
-    seq.pack(side=BOTTOM)
+    seq.pack(side=BOTTOM, padx=5, pady=5)
 
     return tk
 

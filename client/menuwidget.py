@@ -26,7 +26,10 @@ class _MenuItem:
             bg="gray25",
             text=label,
             font="Fixed 9",
-            command=self._select
+            command=self._select,
+            bd=0,
+            highlightthickness=0,
+
         )
 
 
@@ -82,7 +85,9 @@ class Menu:
             bg="gray25",
             text=self.label,
             font="Fixed 9",
-            command=self._invoke
+            command=self._invoke,
+            bd=1,
+            highlightthickness=0,
         )
 
 

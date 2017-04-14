@@ -52,7 +52,9 @@ class Sequencer:
             parent,
             height=self.height*NOTE_HEIGHT + 1,
             width=self.length*NOTE_WIDTH + 1,
-            background='gray50'
+            background='gray50',
+            bd=0,
+            highlightthickness=0,
         )
 
         # bind click, drag, release

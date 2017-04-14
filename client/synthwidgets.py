@@ -58,9 +58,10 @@ class SynthPanel:
             parent,
             height=PANEL_HEIGHT,
             width=PANEL_WIDTH,
-            bd=2,
             relief=RAISED,
-            bg="black"
+            bg="black",
+            bd=1,
+            highlightthickness=0,
         )
 
         # three panels
@@ -68,12 +69,14 @@ class SynthPanel:
             self.widget,
             width=PANEL_WIDTH,
             bd=0,
-            bg="black"
+            bg="black",
+            highlightthickness=0,
+
         ) for _ in range(3))
 
-        self.w_top.pack(side=TOP, fill=BOTH)
-        self.w_mid.pack(side=TOP, fill=BOTH)
-        self.w_bot.pack(side=TOP, fill=BOTH)
+        self.w_top.pack(side=TOP, fill=BOTH, padx=5, pady=5)
+        self.w_mid.pack(side=TOP, fill=BOTH, padx=5, pady=5)
+        self.w_bot.pack(side=TOP, fill=BOTH, padx=5, pady=5)
 
         # label and toggle
         self.w_label = tkinter.Label(
@@ -81,7 +84,10 @@ class SynthPanel:
             text=self._label,
             justify=CENTER,
             font=PANEL_FONT+" 9",
-            bg="black"
+            bg="black",
+            fg="white",
+            bd=0,
+            highlightthickness=0,
         )
         self.w_toggle = tkinter.Button(
             self.w_top,
@@ -89,7 +95,9 @@ class SynthPanel:
             justify=CENTER,
             font=PANEL_FONT+" 9",
             command=self._toggle_enabled,
-            bg="black"
+            bg="black",
+            fg="white",
+            highlightthickness=0,
         )
 
         self.w_toggle.pack(side=LEFT, padx=1)
@@ -101,7 +109,7 @@ class SynthPanel:
                 parent=self.w_mid,
                 width=PANEL_GS_WIDTH,
                 height=PANEL_GS_HEIGHT,
-                fx=self._graph_fx
+                fx=self._graph_fx,
             )
 
             self.w_graph.pack(side=TOP, padx=1)
@@ -315,7 +323,7 @@ class OscPanel(SynthPanel):
             title="Wavetable File",
             initial=initial[0],
             choices=self._get_wavetables(),
-            callback=self._set_wavetable
+            callback=self._set_wavetable,
         )
         self.w_menu.pack(side=RIGHT, fill=X)
         self._set_wavetable(initial[1])
@@ -456,7 +464,9 @@ class FiltPanel(SynthPanel):
             text="###",
             justify=CENTER,
             font=PANEL_FONT+" 9",
-            command=self._toggle_band
+            command=self._toggle_band,
+            bg="black",
+            bd=0,
         )
         self.w_band.pack(side=LEFT, fill=X, padx=3)
 
@@ -570,7 +580,7 @@ class LFOPanel(SynthPanel):
             title="Parameter",
             initial="",
             choices=[],
-            callback=self._set_target_param
+            callback=self._set_target_param,
         )
         self.w_menu_p.pack(side=RIGHT, fill=X)
 
@@ -602,7 +612,10 @@ class LFOPanel(SynthPanel):
             text="###",
             justify=CENTER,
             font=PANEL_FONT+" 9",
-            command=self._toggle_retrig
+            command=self._toggle_retrig,
+            bg="black",
+            bd=0,
+            highlightthickness=0,
         )
         self.w_ret.pack(side=RIGHT, fill=X, padx=3)
 
