@@ -55,6 +55,13 @@ class PlaybackController:
         print("Done.")
 
 
+    def record(self):
+        ''' Like self.play, but invokes synth.record. '''
+        seq = self.get_sequence()
+        print("Rendering...")
+        self.synth.record(seq)
+        print("Done recording.")
+
 
 def gen_controlbar(tk, ctrl):
     ''' Creates the main playback control bar, with a Play button
@@ -63,7 +70,8 @@ def gen_controlbar(tk, ctrl):
     bar = tkinter.Frame(
         tk,
         bd=2,
-        relief=RAISED
+        relief=RAISED,
+        bg="black"
     )
 
     bar_dial = dialwidget.Dial(
@@ -82,8 +90,17 @@ def gen_controlbar(tk, ctrl):
         command=ctrl.play
     )
 
+    bar_rec = tkinter.Button(
+        bar,
+        bg="gray50",
+        text="Record",
+        font="Fixed 9",
+        command=ctrl.record
+    )
+
+    bar_rec.pack(side=BOTTOM, expand=1)
     bar_dial.pack(side=LEFT)
-    bar_play.pack(side=LEFT, expand=1)
+    bar_play.pack(side=LEFT, expand=1, pady=3)
 
     return bar
 
@@ -95,6 +112,7 @@ def setup(synth):
     # Main window
     tk = tkinter.Tk()
     tk.title("Synthesizer")
+    tk.config(bg='black')
 
     # Playback controller
     ctrl = PlaybackController(synth)
@@ -115,7 +133,7 @@ def setup(synth):
     ctrl.seqsource = seq.sequence
 
     # First frame row: oscillators and filter 1
-    oscframe = tkinter.Frame()
+    oscframe = tkinter.Frame(bg="black")
 
     osc1ct = synthwidgets.OscPanel(
         parent=oscframe,
@@ -137,7 +155,7 @@ def setup(synth):
 
 
     # Second frame row: envelopes and filter 2
-    envframe = tkinter.Frame()
+    envframe = tkinter.Frame(bg="black")
 
     env1ct = synthwidgets.EnvPanel(
         parent=envframe,
@@ -159,7 +177,7 @@ def setup(synth):
 
 
     # Third frame row: LFOs
-    lfoframe = tkinter.Frame()
+    lfoframe = tkinter.Frame(bg="black")
 
     lfo1ct = synthwidgets.LFOPanel(
         parent=lfoframe,

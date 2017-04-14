@@ -59,14 +59,16 @@ class SynthPanel:
             height=PANEL_HEIGHT,
             width=PANEL_WIDTH,
             bd=2,
-            relief=RAISED
+            relief=RAISED,
+            bg="black"
         )
 
         # three panels
         self.w_top, self.w_mid, self.w_bot = (tkinter.Frame(
             self.widget,
             width=PANEL_WIDTH,
-            bd=0
+            bd=0,
+            bg="black"
         ) for _ in range(3))
 
         self.w_top.pack(side=TOP, fill=BOTH)
@@ -78,14 +80,16 @@ class SynthPanel:
             self.w_top,
             text=self._label,
             justify=CENTER,
-            font=PANEL_FONT+" 9"
+            font=PANEL_FONT+" 9",
+            bg="black"
         )
         self.w_toggle = tkinter.Button(
             self.w_top,
             text="###",
             justify=CENTER,
             font=PANEL_FONT+" 9",
-            command=self._toggle_enabled
+            command=self._toggle_enabled,
+            bg="black"
         )
 
         self.w_toggle.pack(side=LEFT, padx=1)
@@ -304,7 +308,7 @@ class OscPanel(SynthPanel):
         ''' Adds a wavetable selector menu. '''
 
         wts = self._get_wavetables()
-        initial = list(wts.items())[0]
+        initial = wts[0]
 
         self.w_menu = menuwidget.Menu(
             parent=self.w_top,
@@ -366,10 +370,10 @@ class OscPanel(SynthPanel):
         import pathlib
         here = pathlib.Path('./Synth/wavetables')
 
-        return {
-            str(path.parts[-1]) : str(path)
+        return [
+            (str(path.parts[-1]), str(path))
             for path in here.glob('*.wav')
-        }
+        ]
 
 
     def _set_wavetable(self, value):
@@ -538,34 +542,34 @@ class LFOPanel(SynthPanel):
         ''' Sets up device and parameter menus and
         ret/con toggle button. '''
 
-        self._choices_osc = {
-            "Frame": 'wavtable position',
-            "Detune": 'detune',
-            "Volume": 'volume'
-        }
+        self._choices_osc = [
+            ("Frame", 'wavtable position'),
+            ("Detune", 'detune'),
+            ("Volume", 'volume')
+        ]
 
-        self._choices_env = {
-            "Attack": 'attack',
-            "Decay": 'decay',
-            "Sustain": 'sustainamp',
-            "Release": 'release'
-        }
+        self._choices_env = [
+            ("Attack", 'attack'),
+            ("Decay", 'decay'),
+            ("Sustain", 'sustainamp'),
+            ("Release", 'release')
+        ]
 
-        self._choices_fil = {
-            "Cutoff": 'cutoff'
-        }
+        self._choices_fil = [
+            ("Cutoff", 'cutoff')
+        ]
 
-        self._choices_lfo = {
-            "Freq": 'speed',
-            "Range": 'amount',
-            "Offset": 'offset'
-        }
+        self._choices_lfo = [
+            ("Freq", 'speed'),
+            ("Range", 'amount'),
+            ("Offset", 'offset')
+        ]
 
         self.w_menu_p = menuwidget.Menu(
             parent=self.w_top,
             title="Parameter",
             initial="",
-            choices={},
+            choices=[],
             callback=self._set_target_param
         )
         self.w_menu_p.pack(side=RIGHT, fill=X)
@@ -574,18 +578,18 @@ class LFOPanel(SynthPanel):
             parent=self.w_top,
             title="Device",
             initial="None",
-            choices={
-                "None": (None, None),
-                "Osc1": ('oscil', self._choices_osc),
-                "Osc2": ('oscil2', self._choices_osc),
-                "Env1": ('env1', self._choices_env),
-                "Env2": ('env2', self._choices_env),
-                "Fil1": ('fil1', self._choices_fil),
-                "Fil2": ('fil2', self._choices_fil),
-                "LFO1": ('lfo1', self._choices_lfo),
-                "LFO2": ('lfo2', self._choices_lfo),
-                "LFO3": ('lfo3', self._choices_lfo)
-            },
+            choices=[
+                ("None", (None, None)),
+                ("Osc1", ('oscil', self._choices_osc)),
+                ("Osc2", ('oscil2', self._choices_osc)),
+                ("Env1", ('env1', self._choices_env)),
+                ("Env2", ('env2', self._choices_env)),
+                ("Fil1", ('fil1', self._choices_fil)),
+                ("Fil2", ('fil2', self._choices_fil)),
+                ("LFO1", ('lfo1', self._choices_lfo)),
+                ("LFO2", ('lfo2', self._choices_lfo)),
+                ("LFO3", ('lfo3', self._choices_lfo))
+            ],
             callback=self._set_target,
         )
         self.w_menu_t.pack(side=RIGHT, fill=X)
@@ -654,10 +658,10 @@ class LFOPanel(SynthPanel):
         ''' Sets the target component for the LFO. '''
         if target[0] is not None:
             self.lfo_target = target[0]
-            self.w_menu_p.choices = target[1]
+            self.w_menu_p.set_choices(target[1])
         else:
             self.lfo_target = None
-            self.w_menu_p.choices = {}
+            self.w_menu_p.set_choices([])
         self.w_menu_p.set_label("")
 
         self.target.set_device_control(self.lfo_target, None)
