@@ -13,7 +13,14 @@ import Synth
 
 class PlaybackController:
     ''' Represents the overall structure of the playback sequence.
-    seqsource contains a function that generates a sequence of notes. '''
+    seqsource contains a function that generates a sequence of notes.
+
+    Parameters:
+        synth: (Synth) the synthesizer object that the controller controls
+
+    Note that self.seqsource should be set after this class's instantiation
+    for playback to actually work.
+    '''
 
     def __init__(self, synth):
         ''' Initializer for PlaybackController. Just sets up data. '''
@@ -55,22 +62,48 @@ class PlaybackController:
         print("Done.")
 
 
-    def record(self):
+    def toggle_record(self):
         '''Sets synth.record. '''
         self.synth.record = not(self.synth.record)
-        i=['De-activated','Activated']
-        print("Recording is now: {}".format(i[self.synth.record]))
+        self._toggle_msg(self.synth.record, "Recording")
 
-    def playback(self):
-        '''Sets synth.playback'''
+
+    def toggle_playback(self):
+        '''Sets synth.playback. '''
         self.synth.playback = not(self.synth.playback)
+        self._toggle_msg(self.synth.playback, "Playback")
+
+
+    def _toggle_msg(self, target, label):
+        ''' Prints a message indicating toggle state. '''
         i=['De-activated','Activated']
-        print("Recording is now: {}".format(i[self.synth.playback]))
+        print("{} is now: {}".format(label, i[target]))
+
 
 
 def gen_controlbar(tk, ctrl):
     ''' Creates the main playback control bar, with a Play button
     and a speed (reciprocal tempo) dial. '''
+
+    def _toggle_record():
+        ''' Callback function for the recording toggle. '''
+        ctrl.toggle_record()
+        _update_button(bar2_rec, ctrl.synth.record)
+
+
+    def _toggle_playback():
+        ''' Callback function for the playback toggle. '''
+        ctrl.toggle_playback()
+        _update_button(bar2_play, ctrl.synth.playback)
+
+
+    def _update_button(button, target):
+        if target:
+            button.configure(bg="gray75")
+        else:
+            button.configure(bg="gray50")
+
+
     panel = tkinter.Frame(
         tk,
         relief=RAISED,
@@ -117,7 +150,7 @@ def gen_controlbar(tk, ctrl):
         bg="gray50",
         text="Record",
         font="Fixed 9",
-        command=ctrl.record,
+        command=_toggle_record,
         bd=1,
         highlightthickness=0,
     )
@@ -127,7 +160,7 @@ def gen_controlbar(tk, ctrl):
         bg="gray50",
         text="Playback",
         font="Fixed 9",
-        command=ctrl.playback,
+        command=_toggle_playback,
         bd=1,
         highlightthickness=0,
     )
@@ -135,10 +168,14 @@ def gen_controlbar(tk, ctrl):
 
     bar1_dial.pack(side=LEFT, pady=3, padx=3)
     bar1_render.pack(side=LEFT, expand=1, pady=3,padx=3)
-    bar2_play.pack(side=BOTTOM, expand=1,pady=3,padx=3)
-    bar2_rec.pack(side=BOTTOM, expand=1,pady=3,padx=3)
+    bar2_play.pack(side=LEFT, expand=1,pady=3,padx=3)
+    bar2_rec.pack(side=LEFT, expand=1,pady=3,padx=3)
     bar1.pack(side=BOTTOM, expand=1)
     bar2.pack(side=BOTTOM, expand=1)
+
+    # consistency
+    _update_button(bar2_play, ctrl.synth.playback)
+    _update_button(bar2_rec, ctrl.synth.record)
 
     return panel
 
@@ -161,7 +198,7 @@ def setup(synth):
         length=42,
         height=24,
         firstnoteidx=3*12-1, # (index of C3)
-        temposource=ctrl.get_play_speed
+        temposource=ctrl.get_play_speed,
     )
 
     # Bind playback controller to sequencer
