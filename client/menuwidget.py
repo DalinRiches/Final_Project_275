@@ -53,10 +53,11 @@ class Menu:
             actually need to be a valid menu choice)
         callback: (function) will be called whenever a new option is
             selected, passing the value corresponding to the option.
-        choices: (dict [str : *]) keys are the labels of the options
-            that can be selected from the menu; when an option is
-            selected, the value corresponding to that key will be
-            passed to the callback function.
+        choices: (list of tuples) each tuple represents a menu option,
+            in order in the list. The first element of each tuple will
+            be the text displayed on the button; the second element
+            will be the string passed to the callback when the button
+            is pressed.
     '''
 
     def __init__(self, parent, title, initial, callback, choices):
@@ -67,11 +68,13 @@ class Menu:
         self.parent = parent
         self.title = title
         self.label = initial
-        self.choices = choices
         self.callback = callback
 
         # toggles when the menu is opened
         self._menu_is_open = False
+
+        # create choices dictionary
+        self.set_choices(choices)
 
         # encapsulated widget
         self.widget = tkinter.Button(
@@ -92,7 +95,16 @@ class Menu:
         self._menu_is_open = False
         if item is not None:
             self.set_label(item)
-            self.callback(self.choices[item])
+            self.callback(self._choices_dict[item])
+
+
+    def set_choices(self, choices):
+        ''' Sets the menu choices based on the input list of tuples.
+        (See Menu.__init__ for format.) This should be called rather
+        than setting self.choices directly in order to update the
+        dictionary mapping. '''
+        self.choices = choices
+        self._choices_dict = {item[0] : item[1] for item in choices}
 
 
     def _window_close(self, ev):
@@ -124,11 +136,11 @@ class Menu:
         # bind closing the menu window
         self.w_menubox.bind('<Destroy>', self._window_close)
 
-        # create menu options
-        for item in self.choices.keys():
+        # create menu options in order
+        for item in self.choices:
             w_item = _MenuItem(
                 parent=self.w_menubox,
-                label=item,
+                label=item[0],
                 callback=self._select_item
             )
             w_item.pack(side=LEFT)
