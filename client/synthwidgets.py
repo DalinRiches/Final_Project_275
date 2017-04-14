@@ -466,7 +466,8 @@ class FiltPanel(SynthPanel):
             font=PANEL_FONT+" 9",
             command=self._toggle_band,
             bg="black",
-            bd=0,
+            bd=1,
+            highlightthickness=0,
         )
         self.w_band.pack(side=LEFT, fill=X, padx=3)
 
@@ -614,7 +615,7 @@ class LFOPanel(SynthPanel):
             font=PANEL_FONT+" 9",
             command=self._toggle_retrig,
             bg="black",
-            bd=0,
+            bd=1,
             highlightthickness=0,
         )
         self.w_ret.pack(side=RIGHT, fill=X, padx=3)
