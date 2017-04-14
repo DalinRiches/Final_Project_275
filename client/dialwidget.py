@@ -85,7 +85,10 @@ class Dial:
             parent,
             width=50,
             height=50,
-            relief=FLAT
+            relief=FLAT,
+            bg="black",
+            bd=0,
+
         )
 
         # Subitems of widget:

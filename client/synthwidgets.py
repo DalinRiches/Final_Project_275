@@ -59,14 +59,16 @@ class SynthPanel:
             height=PANEL_HEIGHT,
             width=PANEL_WIDTH,
             bd=2,
-            relief=RAISED
+            relief=RAISED,
+            bg="black"
         )
 
         # three panels
         self.w_top, self.w_mid, self.w_bot = (tkinter.Frame(
             self.widget,
             width=PANEL_WIDTH,
-            bd=0
+            bd=0,
+            bg="black"
         ) for _ in range(3))
 
         self.w_top.pack(side=TOP, fill=BOTH)
@@ -78,14 +80,16 @@ class SynthPanel:
             self.w_top,
             text=self._label,
             justify=CENTER,
-            font=PANEL_FONT+" 9"
+            font=PANEL_FONT+" 9",
+            bg="black"
         )
         self.w_toggle = tkinter.Button(
             self.w_top,
             text="###",
             justify=CENTER,
             font=PANEL_FONT+" 9",
-            command=self._toggle_enabled
+            command=self._toggle_enabled,
+            bg="black"
         )
 
         self.w_toggle.pack(side=LEFT, padx=1)
