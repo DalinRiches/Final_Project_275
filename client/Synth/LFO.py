@@ -104,10 +104,10 @@ class lfo:
                 delta = delta - (delta%self.synth.__dict__[device].detune_step)
 
                 if delta > self.synth.__dict__[device].wavetablepos_max:
-                    self.synth.__dict__[device].wavetablepos == self.synth.__dict__[device].wavetablepos_max
+                    self.synth.__dict__[device].wavetablepos = self.synth.__dict__[device].wavetablepos_max
 
                 elif delta < self.synth.__dict__[device].wavetablepos_min:
-                    self.synth.__dict__[device].wavetablepos == self.synth.__dict__[device].wavetablepos_min
+                    self.synth.__dict__[device].wavetablepos = self.synth.__dict__[device].wavetablepos_min
 
                 else:
                     self.synth.__dict__[device].wavetablepos = delta
@@ -117,10 +117,10 @@ class lfo:
                 delta = self.synth.__dict__[device].detune_max*scale
 
                 if delta > self.synth.__dict__[device].detune_max:
-                    self.synth.__dict__[device].detune == self.synth.__dict__[device].detune_max
+                    self.synth.__dict__[device].detune = self.synth.__dict__[device].detune_max
 
                 elif delta < self.synth.__dict__[device].detune_min:
-                    self.synth.__dict__[device].detune == self.synth.__dict__[device].detune_min
+                    self.synth.__dict__[device].detune = self.synth.__dict__[device].detune_min
 
                 else:
                     self.synth.__dict__[device].detune = delta
