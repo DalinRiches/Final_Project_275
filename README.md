@@ -1,6 +1,5 @@
-
-CMPUT 275 Final Project:  Digital Synthesizer
-April 14, 2017
+# CMPUT 275 Final Project:  Digital Synthesizer
+April 14, 2017  
 Made by:  Dalin Riches and John Dorn
 
 # Overview
@@ -17,20 +16,20 @@ importing Synth.
 The Synth module and thus the graphical synthesizer support audio playback
 through the computer speakers using ALSA, with the python module `alsaaudio`.
 Direct playback is thus only supported on Linux. Recording to a .wav file,
-however, is generally supported on all platforms.
+however, should work on all platforms.
 
 
 # Dependencies
 For direct playback, `alsaaudio` is required.
 
 
-Alsaaudio home page: https://larsimmisch.github.io/pyalsaaudio/
+Alsaaudio home page: https://larsimmisch.github.io/pyalsaaudio/  
 PyPI: https://pypi.python.org/pypi/pyalsaaudio
 
 
 The module can be installed manually (see:
 https://larsimmisch.github.io/pyalsaaudio/pyalsaaudio.html#installation)
-or from PyPI (note that the package name is `pyalsaaudio`).
+or from PyPI (`pip install pyalsaaudio` - note that the package name is not `alsaaudio`).
 
 
 PIL is also required to run the graphical interface. PyPI package `pillow`
@@ -49,7 +48,7 @@ number (time); the "y-axis" the amplitude (signal); and the "z-axis" the
 wave-table position. An oscillator normally holds one wavetable position
 (frame) at a time, and generates its signal by looping through the samples
 in that frame. However, the frame can be changed during playback using
-modulation. (See #####.) Wave-tables are loaded from .wav files where each
+modulation. (See LFOs, below.) Wave-tables are loaded from .wav files where each
 block of 2048 samples in the file constitutes one frame. Thus any .wav file
 can be used as a wavetable, even one that was not intended to be used this
 way. The only requirement is that the file must contain at least 2048 samples.
@@ -57,8 +56,8 @@ way. The only requirement is that the file must contain at least 2048 samples.
 
 ### Note on included wavetables
 Wavetables included in this program were all either generated mathematically
-or created within Xfer's Serum using the wave table editor. No wave-tables
-included were created by a third-party.
+or created within Xfer's Serum using the wave table editor. No wavetables
+included were created by a third party.
 
 
 Information on serum and how the wavetable editor works is here:
@@ -76,21 +75,21 @@ a signal. An oscillator has the following numeric parameters:
 
 An Oscillator also has one selectable parameter: the current wavetable.
 
-### Detune
+#### Detune
 Allows you to offset the frequency of the oscillator from the root note
 (the note being provided by the sequencer) by up to 24 semitones
 (where 12 semitones is one octave).
 
 
-### Volume
+#### Volume
 Allows you to change the volume of the oscillator.
 
 
-### Wavetable Position
+#### Wavetable Position
 Allows you to select a frame from the current wavetable.
 
 
-### Phase Offset
+#### Phase Offset
 Allows you to set the initial phase (starting position within the frame).
 (Note that this parameter cannot be set from the GUI.)
 
@@ -111,23 +110,23 @@ amplitude curve. An envelope has the following numeric parameters:
 3. Sustain Level
 4. Release Time
 
-### Attack Time
+#### Attack Time
 Determines the amount of time the input signal will take to rise from 0 to 100%
 amplification in seconds.
 
 
-### Decay Time
+#### Decay Time
 Determines the amount of time the input signal will take to fall from 100% to
 the sustain level in seconds.
 
 
-### Sustain Level
+#### Sustain Level
 Determines the amplification during the Sustain phase. The length of the
 Sustain phase automatically scales to fill the time the other three phases
 do not cover.
 
 
-### Release Time
+#### Release Time
 Determines the amount of time the input signal will take to fall from the
 sustain level back to 0% amplification, in seconds.
 
@@ -145,16 +144,16 @@ Bode-Plot. The filters have the following numeric parameters:
 A Filter also has one toggleable parameter: its filter type.
 
 
-### Cutoff
-:  Allows you to change the cutoff frequency of the filter.
+#### Cutoff
+Allows you to change the cutoff frequency of the filter.
 
 
 ## LFOs
 The LFO or low frequency oscillator generates a value from -1 to 1 using
-a classical oscillator waveform. It can be configured to a sin, square, or saw
+a classical oscillator waveform. It can be configured to a sine, square, or saw
 waveform. The LFO can be used to to oscillate (modulate) numeric parameters of
 other components. An LFO can be set to modulate any component (including
-itself, though this capability is not very useful.) An LFO has the following
+itself, though this is not very useful.) An LFO has the following
 numeric parameters:
 
 1. Speed (Frequency)
@@ -163,23 +162,23 @@ numeric parameters:
 4. Wavetype
 
 An LFO also has two selectable parameters: the device and parameter to
-modulate; and one toggle parameter: it can be set either to Retrigger,
+modulate, and one toggle parameter: it can be set either to Retrigger,
 in which case the waveform will 'reset' every time a new note begins
 (thus each note will receive identical modulation); or Continue, in
 which case the waveform will not 'reset' (thus the modulation will
 be continuous through the entire sequence).
 
-### Speed (Frequency)
+#### Speed (Frequency)
 Determines the frequency the LFO operates at.
 
-### Amount (Range)
+#### Amount (Range)
 Determines the amount of output that is passed into the control. Larger
 values produce stronger modulation.
 
-### Offset
+#### Offset
 Offsets the output of the LFO additively.
 
-### Wavetype
+#### Wavetype
 Determines which waveform the LFO uses. (Though this is technically a
 numeric parameter, it selects between the Sine, Square, and Saw wavetypes.)
 
@@ -213,7 +212,7 @@ The GUI is a panel-based interface allowing direct control of almost all of
 the settings of the Synth module. Every panel has an ON/OFF switch, which can
 be toggled to completely remove a component from the audio pathway, and dials
 controlling the numeric parameters of each component (described above).
-Toggleable parameters are presented as buttons - pressing the button switches
+Toggleable parameters are presented as buttons -- pressing the button switches
 the value of the parameter. Selectable parameters appear in the upper-right
 corner of a component's panel. Clicking on the button for a parameter will
 open a new window presenting the possible choices for that parameter. Note
@@ -233,7 +232,7 @@ of the sequencer, which can be used to set the length of each note in seconds.
 
 
 Notes can be placed and removed by left (button 1) clicking in the sequencer.
-Longer notes can be created by clicking and dragging to the right - the note
+Longer notes can be created by clicking and dragging to the right -- the note
 will be held continuously from the start to the end of the resulting area.
 Clicking on an existing note and dragging either direction will clear the
 area that is dragged across of all notes. Clicking in a long note or causing
