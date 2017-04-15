@@ -149,7 +149,7 @@ class synth:
 
         # Load oscs
         self.oscil = Synth.osc.wtOsc(
-            wav='./Synth/wavetables/Basic Shapes.wav',
+            wav='./Synth/wavetables/basic.wav',
             volume=0.75,
             pOffset=1024,
             detune=0,
@@ -157,7 +157,7 @@ class synth:
             samplerate=self.samplerate
         )
         self.oscil2 = Synth.osc.wtOsc(
-            wav='./Synth/wavetables/Basic Shapes.wav',
+            wav='./Synth/wavetables/basic.wav',
             volume=0.75,
             detune=0,
             wavetablepos=0,
