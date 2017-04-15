@@ -91,7 +91,6 @@ Allows you to select a frame from the current wavetable.
 
 #### Phase Offset
 Allows you to set the initial phase (starting position within the frame).
-(Note that this parameter cannot be set from the GUI.)
 
 
 ## Envelopes
