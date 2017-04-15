@@ -217,7 +217,8 @@ corner of a component's panel. Clicking on the button for a parameter will
 open a new window presenting the possible choices for that parameter. Note
 that for LFOs the Parameter menu updates dynamically based on what Component
 is currently selected, so the Component must be set first. An LFO can also
-be set to the component 'None', which effectively disables it.
+be set to the component 'None', which effectively disables it. Phase Offset can
+not be modulated.
 
 
 ## Step Sequencer
