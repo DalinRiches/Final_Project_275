@@ -499,8 +499,8 @@ class FiltPanel(SynthPanel):
     def _dials(self):
         return [
             {'label': "Cutoff",
-             'dmin':-5, 'dmax':5, # (logarithmic scaled)
-             'dinitial': -5,
+             'dmin':0, 'dmax':6, # (logarithmic scaled)
+             'dinitial': 0,
              'valformat': "E{:+.0f}",
              'callback': self._log_set_cutoff,
              'update_graph': True }
