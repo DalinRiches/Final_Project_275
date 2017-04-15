@@ -61,5 +61,5 @@ class wavetable:
 
 
 if __name__ == "__main__":
-    table = wavetable(wav='Basic Shapes.wav')
+    table = wavetable(wav='basic.wav')
     print(table)
