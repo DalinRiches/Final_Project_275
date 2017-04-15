@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import serial
 import Synth.LFO
 import Synth.osc
 import Synth.wavetables
@@ -130,7 +129,8 @@ class synth:
         self.volume = volume
         self.feed = list()
         self.record = False
-        self.playback = True
+        self.playback = False
+        self.playb_dis = False
 
         # Open audio channel
         try:
@@ -145,6 +145,7 @@ class synth:
             print('Could not open audio channel.')
             print('Defaulting to record.')
             self.record = True
+            self.playb_dis = True
 
         # Load oscs
         self.oscil = Synth.osc.wtOsc(
@@ -324,7 +325,7 @@ class synth:
                             tot += out[0]
                             sig_count += out[1]
 
-
+                tot = tot//2
                 # Limits the feed, if tot > 100% volume clip it to 100%
                 if tot > 32767:
                     tot = 32767
@@ -352,7 +353,8 @@ class synth:
 
             samples.append(notesamp)
         totalsamples = math.floor(totalsamples)
-        self.aud.setperiodsize((totalsamples*2))
+
+
 
 
         if self.record == True:
@@ -371,6 +373,8 @@ class synth:
 
 
         try:
+
+            self.aud.setperiodsize((totalsamples*2))
 
             if self.playback == True:
                 print("Playing...")

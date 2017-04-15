@@ -346,7 +346,12 @@ class OscPanel(SynthPanel):
              'dmin': -24, 'dmax': 24, 'dincrement': 1,
              'dinitial': 0,
              'valformat': "{:+.0f}",
-             'target': 'detune' }
+             'target': 'detune' },
+             {'label': "Phase Off",
+              'dmin': 0, 'dmax': 2024, 'dincrement': 1,
+              'dinitial': 0,
+              'valformat': "{:+.0f}",
+              'target': 'pOffset' }
         ]
 
 

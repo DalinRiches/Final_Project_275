@@ -123,6 +123,7 @@ class wtOsc:
             self.note[0], self.note[1]
         ) + self.detune
         freq = _getfreq_(semitonedif)
+
         return freq
 
 
@@ -147,7 +148,6 @@ class wtOsc:
 
         self.pInc = self.wavetsize * (self.freq / self.samplerate)
         self.phasor = self.phasor + self.pInc
-
         # Checks that adding the offset does not place the phase
         # out of the window
         if self.phasor >= (self.wavetablepos + 2048):

@@ -70,8 +70,12 @@ class PlaybackController:
 
     def toggle_playback(self):
         '''Sets synth.playback. '''
-        self.synth.playback = not(self.synth.playback)
-        self._toggle_msg(self.synth.playback, "Playback")
+        if self.synth.playb_dis == False:
+            self.synth.playback = not(self.synth.playback)
+            self._toggle_msg(self.synth.playback, "Playback")
+        else:
+            print("Playback is disabled: missing alsaaudio package")
+
 
 
     def _toggle_msg(self, target, label):
